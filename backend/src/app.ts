@@ -5,6 +5,7 @@ import { instrumentRoutes } from "./modules/instruments/instrument.routes";
 import { vipRoutes } from "./modules/vip/vip.routes";
 import { authRoutes } from "./modules/auth/auth.routes";
 import { errorMiddleware, notFoundMiddleware } from "./middlewares/error.middleware";
+import { paymentRoutes } from "./modules/payments/payment.routes";
 
 export const app = express();
 
@@ -28,6 +29,9 @@ app.use("/api/vip", vipRoutes);
 // POST /api/auth
 // Đăng ký tài khoản mới, mã hóa password và trả access token.
 app.use("/api/auth", authRoutes);
+
+// Payments API
+app.use("/api/payments", paymentRoutes);
 
 // Middleware xử lý lỗi 404 khi không tìm thấy route.
 app.use(notFoundMiddleware);
