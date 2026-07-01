@@ -1,4 +1,3 @@
-import { error } from "node:console";
 import { prisma } from "../../config/prisma";
 
 export async function createDevSuccessfulPayment(userId:string, planCode:string) {

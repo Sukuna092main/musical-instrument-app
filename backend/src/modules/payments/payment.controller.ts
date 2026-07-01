@@ -29,5 +29,5 @@ export const listPaymentHistory = asyncHandler(async (req:Request, res:Response)
 
     const payments = await getPaymentHistory(req.user.id);
 
-    res.status(201).json(payments);
+    res.status(200).json(payments);
 })

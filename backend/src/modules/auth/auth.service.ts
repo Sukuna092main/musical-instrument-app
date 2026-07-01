@@ -32,7 +32,7 @@ export async function registerUser(input: RegisterInput) {
     const existingUser = await prisma.users.findUnique({ where: { email } });
 
     if (existingUser) {
-        throw new Error("Email already exists");
+        return { error: "Email already exists" };
     }
 
     const hashedPassword = await hashPassword(input.password);
