@@ -9,6 +9,7 @@ import { paymentRoutes } from "./modules/payments/payment.routes";
 import { mediaRoutes } from "./modules/media/media.routes";
 import { chatRoutes } from "./modules/chat/chat.routes";
 import { youtubeRoutes } from "./modules/youtube/youtube.routes";
+import { adminRoutes } from "./modules/admin/admin.routes";
 
 
 export const app = express();
@@ -45,6 +46,9 @@ app.use("/api/chat", chatRoutes);
 
 // YouTube API
 app.use("/api/youtube", youtubeRoutes);
+
+// Admin API
+app.use("/api/admin", adminRoutes);
 
 // Middleware xử lý lỗi 404 khi không tìm thấy route.
 app.use(notFoundMiddleware);
