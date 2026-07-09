@@ -61,8 +61,8 @@ __exportStar(require("./enums"), exports);
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Chat_messages
- * const chat_messages = await prisma.chat_messages.findMany()
+ * // Fetch zero or more Users
+ * const users = await prisma.users.findMany()
  * ```
  *
  * Read more in our [docs](https://pris.ly/d/client).

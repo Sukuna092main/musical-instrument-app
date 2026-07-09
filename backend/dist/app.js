@@ -11,9 +11,8 @@ const vip_routes_1 = require("./modules/vip/vip.routes");
 const auth_routes_1 = require("./modules/auth/auth.routes");
 const error_middleware_1 = require("./middlewares/error.middleware");
 const payment_routes_1 = require("./modules/payments/payment.routes");
-const media_routes_1 = require("./modules/media/media.routes");
 const chat_routes_1 = require("./modules/chat/chat.routes");
-const youtube_routes_1 = require("./modules/youtube/youtube.routes");
+const admin_routes_1 = require("./modules/admin/admin.routes");
 exports.app = (0, express_1.default)();
 exports.app.use((0, cors_1.default)());
 exports.app.use(express_1.default.json());
@@ -33,12 +32,10 @@ exports.app.use("/api/vip", vip_routes_1.vipRoutes);
 exports.app.use("/api/auth", auth_routes_1.authRoutes);
 // Payments API
 exports.app.use("/api/payments", payment_routes_1.paymentRoutes);
-// Media API
-exports.app.use("/api/media", media_routes_1.mediaRoutes);
 // Chat API
 exports.app.use("/api/chat", chat_routes_1.chatRoutes);
-// YouTube API
-exports.app.use("/api/youtube", youtube_routes_1.youtubeRoutes);
+// Admin API
+exports.app.use("/api/admin", admin_routes_1.adminRoutes);
 // Middleware xử lý lỗi 404 khi không tìm thấy route.
 exports.app.use(error_middleware_1.notFoundMiddleware);
 // Global error handler

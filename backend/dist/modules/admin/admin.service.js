@@ -1,118 +1,106 @@
-import { prisma } from "../../config/prisma";
-
-function sunAmount(result: { _sum: { amount: number | null } }) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getAdminDashboard = getAdminDashboard;
+exports.listUsersForAdmin = listUsersForAdmin;
+exports.getUserForAdmin = getUserForAdmin;
+exports.updateUserStatusForAdmin = updateUserStatusForAdmin;
+exports.listInstrumentsForAdmin = listInstrumentsForAdmin;
+exports.getInstrumentForAdmin = getInstrumentForAdmin;
+exports.createInstrumentForAdmin = createInstrumentForAdmin;
+exports.updateInstrumentForAdmin = updateInstrumentForAdmin;
+exports.hideInstrumentForAdmin = hideInstrumentForAdmin;
+exports.listVipPlansForAdmin = listVipPlansForAdmin;
+exports.getVipPlanForAdmin = getVipPlanForAdmin;
+exports.updateVipPlanForAdmin = updateVipPlanForAdmin;
+exports.listPaymentsForAdmin = listPaymentsForAdmin;
+exports.getPaymentForAdmin = getPaymentForAdmin;
+exports.listSubscriptionsForAdmin = listSubscriptionsForAdmin;
+exports.getSubscriptionForAdmin = getSubscriptionForAdmin;
+exports.updateSubscriptionStatusForAdmin = updateSubscriptionStatusForAdmin;
+const prisma_1 = require("../../config/prisma");
+function sunAmount(result) {
     return result._sum.amount || 0;
 }
-
 function startOfToday() {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
-
-function daysAgo(days: number) {
-     const date = new Date();
+function daysAgo(days) {
+    const date = new Date();
     date.setDate(date.getDate() - days);
     return date;
 }
-
 function startOfCurrentMonth() {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
 }
-
-export async function getAdminDashboard() {
+async function getAdminDashboard() {
     const today = startOfToday();
     const last7Days = daysAgo(7);
     const last30Days = daysAgo(30);
     const currentMonth = startOfCurrentMonth();
-
-    const [
-        grossRevenue,
-        refundedRevenue,
-        todayRevenue,
-        last7DaysRevenue,
-        last30DaysRevenue,
-        totalUsers,
-        newUsersToday,
-        newUsersLast7Days,
-        blockedUsers,
-        activeSubscriptions,
-        newSubscriptionsThisMonth,
-        expiredSubscriptions,
-        cancelledSubscriptions,
-        paymentStatusGroups,
-        totalInstruments,
-        freeInstruments,
-        vipInstruments,
-        activeInstruments,
-        hiddenInstruments,
-    ] = await Promise.all([
-        prisma.payments.aggregate({
+    const [grossRevenue, refundedRevenue, todayRevenue, last7DaysRevenue, last30DaysRevenue, totalUsers, newUsersToday, newUsersLast7Days, blockedUsers, activeSubscriptions, newSubscriptionsThisMonth, expiredSubscriptions, cancelledSubscriptions, paymentStatusGroups, totalInstruments, freeInstruments, vipInstruments, activeInstruments, hiddenInstruments,] = await Promise.all([
+        prisma_1.prisma.payments.aggregate({
             where: { status: "success" },
             _sum: { amount: true },
         }),
-        prisma.payments.aggregate({
+        prisma_1.prisma.payments.aggregate({
             where: { status: "refunded" },
             _sum: { amount: true },
         }),
-        prisma.payments.aggregate({
+        prisma_1.prisma.payments.aggregate({
             where: { status: "success", created_at: { gte: today } },
             _sum: { amount: true },
         }),
-        prisma.payments.aggregate({
+        prisma_1.prisma.payments.aggregate({
             where: { status: "success", created_at: { gte: last7Days } },
             _sum: { amount: true },
         }),
-        prisma.payments.aggregate({
+        prisma_1.prisma.payments.aggregate({
             where: { status: "success", created_at: { gte: last30Days } },
             _sum: { amount: true },
         }),
-        prisma.users.count(),
-        prisma.users.count({ where: { created_at: { gte: today } } }),
-        prisma.users.count({ where: { created_at: { gte: last7Days } } }),
-        prisma.users.count({ where: { status: "blocked" } }),
-        prisma.subscriptions.count({ where: 
-            { 
+        prisma_1.prisma.users.count(),
+        prisma_1.prisma.users.count({ where: { created_at: { gte: today } } }),
+        prisma_1.prisma.users.count({ where: { created_at: { gte: last7Days } } }),
+        prisma_1.prisma.users.count({ where: { status: "blocked" } }),
+        prisma_1.prisma.subscriptions.count({ where: {
                 status: "active",
                 expired_at: { gte: new Date() }
             }
         }),
-        prisma.subscriptions.count({
-            where: {created_at: { gte: currentMonth } }
+        prisma_1.prisma.subscriptions.count({
+            where: { created_at: { gte: currentMonth } }
         }),
-        prisma.subscriptions.count({
+        prisma_1.prisma.subscriptions.count({
             where: { status: "expired" }
         }),
-        prisma.subscriptions.count({
+        prisma_1.prisma.subscriptions.count({
             where: { status: "cancelled" }
         }),
-        prisma.payments.groupBy({
+        prisma_1.prisma.payments.groupBy({
             by: ["status"],
             _count: { status: true },
         }),
-        prisma.instruments.count(),
-        prisma.instruments.count({ where: { is_vip: false } }),
-        prisma.instruments.count({ where: { is_vip: true } }),
-        prisma.instruments.count({ where: { status: "active" } }),
-        prisma.instruments.count({ where: { status: "hidden" } }),
+        prisma_1.prisma.instruments.count(),
+        prisma_1.prisma.instruments.count({ where: { is_vip: false } }),
+        prisma_1.prisma.instruments.count({ where: { is_vip: true } }),
+        prisma_1.prisma.instruments.count({ where: { status: "active" } }),
+        prisma_1.prisma.instruments.count({ where: { status: "hidden" } }),
     ]);
-
     const grossTotal = sunAmount(grossRevenue);
     const refundedTotal = sunAmount(refundedRevenue);
-
     const paymentCounts = {
         success: 0,
         pending: 0,
         refunded: 0,
         failed: 0,
     };
-
     for (const group of paymentStatusGroups) {
         if (group.status in paymentCounts) {
-            paymentCounts[group.status as keyof typeof paymentCounts] = group._count.status;
+            paymentCounts[group.status] = group._count.status;
         }
     }
-
     return {
         revenue: {
             grossTotal,
@@ -144,37 +132,22 @@ export async function getAdminDashboard() {
         },
     };
 }
-
-type ListAdminUsersInput = {
-    page?: number;
-    limit?: number;
-    search?: string;
-    status?: string;
-    role?: "user" | "admin";
-};
-
 const allowUsersStatuses = ["active", "blocked", "deleted"];
 const allowUsersRoles = ["user", "admin"];
-
-function normalizePagination(page?: number, limit?: number) {
+function normalizePagination(page, limit) {
     const p = typeof page === 'number' && page > 0 ? page : 1;
     const l = typeof limit === 'number' && limit > 0 && limit <= 100 ? limit : 20;
     return { page: p, limit: l, skip: (p - 1) * l };
 }
-
-export async function listUsersForAdmin(input: ListAdminUsersInput) {
+async function listUsersForAdmin(input) {
     const { page, limit, skip } = normalizePagination(input.page, input.limit);
-
-    const where: any = {};
-
+    const where = {};
     if (input.status && allowUsersStatuses.includes(input.status)) {
         where.status = input.status;
     }
-
     if (input.role && allowUsersRoles.includes(input.role)) {
         where.role = input.role;
     }
-
     if (input.search && input.search.trim() !== "") {
         const search = input.search.trim();
         where.OR = [
@@ -186,9 +159,8 @@ export async function listUsersForAdmin(input: ListAdminUsersInput) {
             },
         ];
     }
-
     const [items, total] = await Promise.all([
-        prisma.users.findMany({
+        prisma_1.prisma.users.findMany({
             where,
             skip,
             take: limit,
@@ -205,9 +177,8 @@ export async function listUsersForAdmin(input: ListAdminUsersInput) {
                 updated_at: true,
             }
         }),
-        prisma.users.count({ where }),
+        prisma_1.prisma.users.count({ where }),
     ]);
-
     return {
         items,
         pagination: {
@@ -218,9 +189,8 @@ export async function listUsersForAdmin(input: ListAdminUsersInput) {
         }
     };
 }
-
-export async function getUserForAdmin(userId: string) {
-    return prisma.users.findUnique({
+async function getUserForAdmin(userId) {
+    return prisma_1.prisma.users.findUnique({
         where: { id: userId },
         select: {
             id: true,
@@ -249,21 +219,17 @@ export async function getUserForAdmin(userId: string) {
         }
     });
 }
-
-export async function updateUserStatusForAdmin(userId: string, newStatus: "active" | "blocked" | "deleted") {
+async function updateUserStatusForAdmin(userId, newStatus) {
     if (!allowUsersStatuses.includes(newStatus)) {
         throw new Error(`Invalid status: ${newStatus}`);
     }
-
-    const user = await prisma.users.findUnique({ where: { id: userId } });
-
+    const user = await prisma_1.prisma.users.findUnique({ where: { id: userId } });
     if (!user) {
         throw new Error(`User not found with id: ${userId}`);
     }
-
-    const updatedUser = await prisma.users.update({
+    const updatedUser = await prisma_1.prisma.users.update({
         where: { id: userId },
-        data: { 
+        data: {
             status: newStatus,
             updated_at: new Date(),
         },
@@ -276,72 +242,38 @@ export async function updateUserStatusForAdmin(userId: string, newStatus: "activ
             updated_at: true,
         }
     });
-
     return { user: updatedUser };
 }
-
-type ListAdminInstrumentsInput = {
-    page?: number,
-    limit?: number;
-    search?: string;
-    status?: "active" | "hidden" | "deleted";
-    type?: string;
-    isVip?: boolean;
-}
-
-type CreateInstrumentInput = {
-    name: string;
-    type: string;
-    description?: string;
-    imageUrl?: string;
-    audioSampleUrl?: string | null;
-    isVip?: boolean;
-    tags?: string[];
-    status?: "active" | "hidden" | "deleted";
-};
-
-type UpdateInstrumentInput = Partial<CreateInstrumentInput>;
-
 const allowedInstrumentTypes = [
-  "guitar",
-  "piano",
-  "drum",
-  "violin",
-  "saxophone",
-  "flute",
-  "other",
+    "guitar",
+    "piano",
+    "drum",
+    "violin",
+    "saxophone",
+    "flute",
+    "other",
 ];
-
 const allowedInstrumentStatuses = ["active", "hidden", "deleted"];
-
-function validateInstrumentType(type: string) {
+function validateInstrumentType(type) {
     return allowedInstrumentTypes.includes(type);
 }
-
-function validateInstrumentStatus(status: string) {
+function validateInstrumentStatus(status) {
     return allowedInstrumentStatuses.includes(status);
 }
-
-export async function listInstrumentsForAdmin(input: ListAdminInstrumentsInput) {
+async function listInstrumentsForAdmin(input) {
     const { page, limit, skip } = normalizePagination(input.page, input.limit);
-
-    const where: any = {};
-
+    const where = {};
     if (input.status && validateInstrumentStatus(input.status)) {
         where.status = input.status;
     }
-
     if (input.type && validateInstrumentType(input.type)) {
         where.type = input.type;
     }
-
     if (typeof input.isVip === "boolean") {
         where.is_vip = input.isVip;
     }
-
     if (input.search && input.search.trim() !== "") {
         const search = input.search.trim();
-
         where.OR = [
             {
                 name: { contains: search, mode: "insensitive" },
@@ -351,17 +283,15 @@ export async function listInstrumentsForAdmin(input: ListAdminInstrumentsInput) 
             },
         ];
     }
-
     const [items, total] = await Promise.all([
-        prisma.instruments.findMany({
+        prisma_1.prisma.instruments.findMany({
             where,
             skip,
             take: limit,
             orderBy: { created_at: "desc" },
         }),
-        prisma.instruments.count({ where }),
+        prisma_1.prisma.instruments.count({ where }),
     ]);
-
     return {
         items,
         pagination: {
@@ -372,25 +302,20 @@ export async function listInstrumentsForAdmin(input: ListAdminInstrumentsInput) 
         }
     };
 }
-
-export async function getInstrumentForAdmin(instrumentId: string) {
-    return prisma.instruments.findUnique({
+async function getInstrumentForAdmin(instrumentId) {
+    return prisma_1.prisma.instruments.findUnique({
         where: { id: instrumentId },
     });
 }
-
-export async function createInstrumentForAdmin(input: CreateInstrumentInput) {
+async function createInstrumentForAdmin(input) {
     if (!validateInstrumentType(input.type)) {
         throw new Error(`Invalid instrument type: ${input.type}`);
     }
-
     const status = input.status || "active";
-
     if (!validateInstrumentStatus(status)) {
         throw new Error(`Invalid instrument status: ${status}`);
     }
-
-    const newInstrument = await prisma.instruments.create({
+    const newInstrument = await prisma_1.prisma.instruments.create({
         data: {
             name: input.name.trim(),
             type: input.type,
@@ -403,28 +328,22 @@ export async function createInstrumentForAdmin(input: CreateInstrumentInput) {
             updated_at: new Date(),
         }
     });
-
     return { instrument: newInstrument };
 }
-
-export async function updateInstrumentForAdmin(instrumentId: string, input: UpdateInstrumentInput) {
-    const existingInstrument = await prisma.instruments.findUnique({ 
-        where: { id: instrumentId } 
+async function updateInstrumentForAdmin(instrumentId, input) {
+    const existingInstrument = await prisma_1.prisma.instruments.findUnique({
+        where: { id: instrumentId }
     });
-
     if (!existingInstrument) {
         throw new Error(`Instrument not found with id: ${instrumentId}`);
     }
-
     if (input.type && !validateInstrumentType(input.type)) {
         throw new Error(`Invalid instrument type: ${input.type}`);
     }
-
     if (input.status && !validateInstrumentStatus(input.status)) {
         throw new Error(`Invalid instrument status: ${input.status}`);
     }
-
-    const updatedInstrument = await prisma.instruments.update({
+    const updatedInstrument = await prisma_1.prisma.instruments.update({
         where: { id: instrumentId },
         data: {
             ...(input.name !== undefined && { name: input.name.trim() }),
@@ -439,61 +358,38 @@ export async function updateInstrumentForAdmin(instrumentId: string, input: Upda
             updated_at: new Date(),
         },
     });
-
     return { instrument: updatedInstrument };
 }
-
-export async function hideInstrumentForAdmin(instrumentId: string) {
-    const existingInstrument = await prisma.instruments.findUnique({ 
-        where: { id: instrumentId } 
+async function hideInstrumentForAdmin(instrumentId) {
+    const existingInstrument = await prisma_1.prisma.instruments.findUnique({
+        where: { id: instrumentId }
     });
-
     if (!existingInstrument) {
         throw new Error(`Instrument not found with id: ${instrumentId}`);
     }
-
-    const updatedInstrument = await prisma.instruments.update({
+    const updatedInstrument = await prisma_1.prisma.instruments.update({
         where: { id: instrumentId },
         data: {
             status: "hidden",
             updated_at: new Date(),
         },
     });
-
     return { instrument: updatedInstrument };
 }
-
-type ListAdminVipPlansInput = {
-    status?: "active" | "inactive";
-}
-
-type UpdateFixedVipPlanInput = {
-    name?: string;
-    description?: string | null;
-    price?: number;
-    currency?: string;
-    features?: string[];
-    status?: "active" | "inactive";
-}
-
 const fixedVipPlanCodes = ["VIP_MONTHLY", "VIP_YEARLY"];
 const allowedVipPlanStatuses = ["active", "inactive"];
 const allowedVipPlanCurrencies = ["USD", "EUR", "VND"];
-
-export async function listVipPlansForAdmin(input: ListAdminVipPlansInput) {
-    const where: any = {
+async function listVipPlansForAdmin(input) {
+    const where = {
         code: { in: fixedVipPlanCodes },
     };
-
     if (input.status && allowedVipPlanStatuses.includes(input.status)) {
         where.status = input.status;
     }
-
-    const items = await prisma.vip_plans.findMany({
+    const items = await prisma_1.prisma.vip_plans.findMany({
         where,
         orderBy: { duration_days: "asc" },
     });
-
     return {
         items,
         meta: {
@@ -503,41 +399,32 @@ export async function listVipPlansForAdmin(input: ListAdminVipPlansInput) {
         },
     };
 }
-
-export async function getVipPlanForAdmin(planId: string) {
-    const vipPlan = await prisma.vip_plans.findUnique({
+async function getVipPlanForAdmin(planId) {
+    const vipPlan = await prisma_1.prisma.vip_plans.findUnique({
         where: { id: planId },
     });
-
     if (!vipPlan || !fixedVipPlanCodes.includes(vipPlan.code)) {
         throw new Error(`VIP plan not found with id: ${planId}`);
     }
-
     return { vipPlan };
 }
-
-export async function updateVipPlanForAdmin(planId: string, input: UpdateFixedVipPlanInput) {
-    const existingPlan = await prisma.vip_plans.findUnique({
+async function updateVipPlanForAdmin(planId, input) {
+    const existingPlan = await prisma_1.prisma.vip_plans.findUnique({
         where: { id: planId },
     });
-
     if (!existingPlan || !fixedVipPlanCodes.includes(existingPlan.code)) {
         throw new Error(`VIP plan not found with id: ${planId}`);
     }
-
     if (input.currency && !allowedVipPlanCurrencies.includes(input.currency)) {
         throw new Error(`Invalid currency: ${input.currency}`);
     }
-
     if (input.status && !allowedVipPlanStatuses.includes(input.status)) {
         throw new Error(`Invalid status: ${input.status}`);
     }
-
     if (input.price !== undefined && input.price < 0) {
         throw new Error(`Price cannot be negative: ${input.price}`);
     }
-
-    const plan = await prisma.vip_plans.update({
+    const plan = await prisma_1.prisma.vip_plans.update({
         where: { id: planId },
         data: {
             ...(input.name !== undefined && { name: input.name.trim() }),
@@ -549,20 +436,9 @@ export async function updateVipPlanForAdmin(planId: string, input: UpdateFixedVi
             updated_at: new Date(),
         },
     });
-
     return { vipPlan: plan };
 }
-
-type listAdminPaymentsInput = {
-    page?: number;
-    limit?: number;
-    status?: string;
-    provider?: string;
-    userId?: string;
-};
-
 const allowedPaymentStatuses = ["success", "pending", "refunded", "failed", "cancelled"];
-
 const allowedPaymentProviders = [
     "google_play",
     "apple_app_store",
@@ -571,33 +447,24 @@ const allowedPaymentProviders = [
     "vnpay",
     "manual",
 ];
-
-export async function listPaymentsForAdmin(input:listAdminPaymentsInput) {
-    const { page, limit, skip } = normalizePagination(
-        input.page,
-        input.limit
-    );
-
-    const where: any = {};
-
+async function listPaymentsForAdmin(input) {
+    const { page, limit, skip } = normalizePagination(input.page, input.limit);
+    const where = {};
     if (!input.status || allowedPaymentStatuses.includes(input.status)) {
         where.status = input.status;
     }
-
     if (!input.provider || allowedPaymentProviders.includes(input.provider)) {
         where.provider = input.provider;
     }
-
     if (input.userId) {
         where.user_id = input.userId;
     }
-
     const [items, total] = await Promise.all([
-        prisma.payments.findMany({
+        prisma_1.prisma.payments.findMany({
             where,
             skip,
             take: limit,
-            orderBy: {created_at: "desc"},
+            orderBy: { created_at: "desc" },
             include: {
                 users: {
                     select: {
@@ -618,9 +485,8 @@ export async function listPaymentsForAdmin(input:listAdminPaymentsInput) {
                 }
             }
         }),
-        prisma.payments.count({where})
+        prisma_1.prisma.payments.count({ where })
     ]);
-
     return {
         items,
         pagination: {
@@ -631,170 +497,139 @@ export async function listPaymentsForAdmin(input:listAdminPaymentsInput) {
         }
     };
 }
-
-export async function getPaymentForAdmin(id: string) {
-  return prisma.payments.findUnique({
-    where: { id },
-    include: {
-      users: {
-        select: {
-          id: true,
-          full_name: true,
-          email: true,
-          role: true,
-          status: true,
+async function getPaymentForAdmin(id) {
+    return prisma_1.prisma.payments.findUnique({
+        where: { id },
+        include: {
+            users: {
+                select: {
+                    id: true,
+                    full_name: true,
+                    email: true,
+                    role: true,
+                    status: true,
+                },
+            },
+            vip_plans: true,
         },
-      },
-      vip_plans: true,
-    },
-  });
+    });
 }
-
-type ListAdminSubscriptionsInput = {
-  page?: number;
-  limit?: number;
-  status?: string;
-  userId?: string;
-  planId?: string;
-};
-
 const allowedSubscriptionStatuses = [
-  "active",
-  "expired",
-  "cancelled",
-  "pending",
+    "active",
+    "expired",
+    "cancelled",
+    "pending",
 ];
-
-export async function listSubscriptionsForAdmin(
-  input: ListAdminSubscriptionsInput
-) {
-  const { page, limit, skip } = normalizePagination(
-    input.page,
-    input.limit
-  );
-
-  const where: any = {};
-
-  if (input.status && allowedSubscriptionStatuses.includes(input.status)) {
-    where.status = input.status;
-  }
-
-  if (input.userId) {
-    where.user_id = input.userId;
-  }
-
-  if (input.planId) {
-    where.plan_id = input.planId;
-  }
-
-  const [items, total] = await Promise.all([
-    prisma.subscriptions.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: {
-        created_at: "desc",
-      },
-      include: {
-        users: {
-          select: {
-            id: true,
-            full_name: true,
-            email: true,
-            role: true,
-            status: true,
-          },
-        },
-        vip_plans: {
-          select: {
-            id: true,
-            code: true,
-            name: true,
-            duration_days: true,
-          },
-        },
-      },
-    }),
-    prisma.subscriptions.count({ where }),
-  ]);
-
-  return {
-    items,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
-  };
-}
-
-export async function getSubscriptionForAdmin(id: string) {
-  return prisma.subscriptions.findUnique({
-    where: {
-      id,
-    },
-    include: {
-      users: {
-        select: {
-          id: true,
-          full_name: true,
-          email: true,
-          role: true,
-          status: true,
-        },
-      },
-      vip_plans: true,
-    },
-  });
-}
-
-export async function updateSubscriptionStatusForAdmin(
-  id: string,
-  status: string
-) {
-  if (!allowedSubscriptionStatuses.includes(status)) {
+async function listSubscriptionsForAdmin(input) {
+    const { page, limit, skip } = normalizePagination(input.page, input.limit);
+    const where = {};
+    if (input.status && allowedSubscriptionStatuses.includes(input.status)) {
+        where.status = input.status;
+    }
+    if (input.userId) {
+        where.user_id = input.userId;
+    }
+    if (input.planId) {
+        where.plan_id = input.planId;
+    }
+    const [items, total] = await Promise.all([
+        prisma_1.prisma.subscriptions.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: {
+                created_at: "desc",
+            },
+            include: {
+                users: {
+                    select: {
+                        id: true,
+                        full_name: true,
+                        email: true,
+                        role: true,
+                        status: true,
+                    },
+                },
+                vip_plans: {
+                    select: {
+                        id: true,
+                        code: true,
+                        name: true,
+                        duration_days: true,
+                    },
+                },
+            },
+        }),
+        prisma_1.prisma.subscriptions.count({ where }),
+    ]);
     return {
-      error: "Invalid subscription status",
-    };
-  }
-
-  const existingSubscription = await prisma.subscriptions.findUnique({
-    where: {
-      id,
-    },
-  });
-
-  if (!existingSubscription) {
-    return {
-      error: "Subscription not found",
-    };
-  }
-
-  const subscription = await prisma.subscriptions.update({
-    where: {
-      id,
-    },
-    data: {
-      status,
-      cancelled_at: status === "cancelled" ? new Date() : null,
-      updated_at: new Date(),
-    },
-    include: {
-      users: {
-        select: {
-          id: true,
-          full_name: true,
-          email: true,
-          role: true,
-          status: true,
+        items,
+        pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
         },
-      },
-      vip_plans: true,
-    },
-  });
-
-  return {
-    subscription,
-  };
+    };
+}
+async function getSubscriptionForAdmin(id) {
+    return prisma_1.prisma.subscriptions.findUnique({
+        where: {
+            id,
+        },
+        include: {
+            users: {
+                select: {
+                    id: true,
+                    full_name: true,
+                    email: true,
+                    role: true,
+                    status: true,
+                },
+            },
+            vip_plans: true,
+        },
+    });
+}
+async function updateSubscriptionStatusForAdmin(id, status) {
+    if (!allowedSubscriptionStatuses.includes(status)) {
+        return {
+            error: "Invalid subscription status",
+        };
+    }
+    const existingSubscription = await prisma_1.prisma.subscriptions.findUnique({
+        where: {
+            id,
+        },
+    });
+    if (!existingSubscription) {
+        return {
+            error: "Subscription not found",
+        };
+    }
+    const subscription = await prisma_1.prisma.subscriptions.update({
+        where: {
+            id,
+        },
+        data: {
+            status,
+            cancelled_at: status === "cancelled" ? new Date() : null,
+            updated_at: new Date(),
+        },
+        include: {
+            users: {
+                select: {
+                    id: true,
+                    full_name: true,
+                    email: true,
+                    role: true,
+                    status: true,
+                },
+            },
+            vip_plans: true,
+        },
+    });
+    return {
+        subscription,
+    };
 }

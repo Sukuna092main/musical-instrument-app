@@ -7,6 +7,60 @@ datasource db {
   provider = "postgresql"
 }
 
+// ─────────────────────────────────────────────
+// EXISTING MODELS (kept & evolved)
+// ─────────────────────────────────────────────
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model users {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  full_name     String   @db.VarChar(100)
+  email         String   @unique @db.VarChar(255)
+  password_hash String
+  avatar_url    String?
+  phone         String?  @db.VarChar(30)
+  role          String   @default("user") @db.VarChar(20)
+  status        String   @default("active") @db.VarChar(20)
+  created_at    DateTime @default(now()) @db.Timestamp(6)
+  updated_at    DateTime @default(now()) @db.Timestamp(6)
+
+  // Existing relations
+  chat_messages        chat_messages[]
+  payments             payments[]
+  subscriptions        subscriptions[]
+
+  // New relations
+  user_instruments     user_instruments[]
+  practice_sessions    practice_sessions[]
+  practice_goals       practice_goals[]
+  user_lesson_progress user_lesson_progress[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model instruments {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String   @db.VarChar(120)
+  type             String   @db.VarChar(50)
+  description      String
+  image_url        String
+  audio_sample_url String?
+  is_vip           Boolean  @default(false)
+  tags             String[] @default([])
+  status           String   @default("active") @db.VarChar(20)
+  created_at       DateTime @default(now()) @db.Timestamp(6)
+  updated_at       DateTime @default(now()) @db.Timestamp(6)
+
+  // New relations
+  user_instruments  user_instruments[]
+  practice_sessions practice_sessions[]
+  practice_goals    practice_goals[]
+  lessons           lessons[]
+  chords            chords[]
+  scales            scales[]
+
+  @@index([status, is_vip, type], map: "instruments_status_vip_type_idx")
+}
+
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model chat_messages {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -23,41 +77,23 @@ model chat_messages {
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model instruments {
-  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name             String        @db.VarChar(120)
-  type             String        @db.VarChar(50)
-  description      String
-  image_url        String
-  audio_sample_url String?
-  is_vip           Boolean       @default(false)
-  tags             String[]      @default([])
-  status           String        @default("active") @db.VarChar(20)
-  created_at       DateTime      @default(now()) @db.Timestamp(6)
-  updated_at       DateTime      @default(now()) @db.Timestamp(6)
-  media_items      media_items[]
+model vip_plans {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code          String   @unique @db.VarChar(50)
+  name          String   @db.VarChar(100)
+  description   String?
+  price         Int
+  currency      String   @default("VND") @db.VarChar(10)
+  duration_days Int
+  features      String[] @default([])
+  status        String   @default("active") @db.VarChar(20)
+  created_at    DateTime @default(now()) @db.Timestamp(6)
+  updated_at    DateTime @default(now()) @db.Timestamp(6)
 
-  @@index([status, is_vip, type], map: "instruments_status_vip_type_idx")
-}
+  payments      payments[]
+  subscriptions subscriptions[]
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model media_items {
-  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id          String      @db.Uuid
-  instrument_id    String      @db.Uuid
-  type             String      @db.VarChar(20)
-  title            String      @db.VarChar(200)
-  source_url       String?
-  youtube_video_id String?     @db.VarChar(50)
-  file_url         String?
-  duration_seconds Int?
-  created_at       DateTime    @default(now()) @db.Timestamp(6)
-  updated_at       DateTime    @default(now()) @db.Timestamp(6)
-  instruments      instruments @relation(fields: [instrument_id], references: [id], onUpdate: NoAction)
-  users            users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@index([instrument_id, created_at(sort: Desc)], map: "media_items_instrument_recent_idx")
-  @@index([user_id, created_at(sort: Desc)], map: "media_items_user_recent_idx")
+  @@index([status, price])
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -97,39 +133,165 @@ model subscriptions {
   @@index([user_id, status, expired_at(sort: Desc)], map: "subscriptions_user_status_expired_idx")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model users {
-  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  full_name     String          @db.VarChar(100)
-  email         String          @unique @db.VarChar(255)
-  password_hash String
-  avatar_url    String?
-  phone         String?         @db.VarChar(30)
-  role          String          @default("user") @db.VarChar(20)
-  status        String          @default("active") @db.VarChar(20)
-  created_at    DateTime        @default(now()) @db.Timestamp(6)
-  updated_at    DateTime        @default(now()) @db.Timestamp(6)
-  chat_messages chat_messages[]
-  media_items   media_items[]
-  payments      payments[]
-  subscriptions subscriptions[]
+// ─────────────────────────────────────────────
+// NEW MODELS — Music Practice Tracker MVP
+// ─────────────────────────────────────────────
+
+/// Many-to-many: which instruments each user is learning
+model user_instruments {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String   @db.Uuid
+  instrument_id String   @db.Uuid
+  skill_level   String   @default("beginner") @db.VarChar(20) // beginner | intermediate | advanced
+  is_primary    Boolean  @default(false)
+  created_at    DateTime @default(now()) @db.Timestamp(6)
+
+  users       users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  instruments instruments @relation(fields: [instrument_id], references: [id], onUpdate: NoAction)
+
+  @@unique([user_id, instrument_id])
+  @@index([user_id])
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model vip_plans {
-  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code          String          @unique @db.VarChar(50)
-  name          String          @db.VarChar(100)
-  description   String?
-  price         Int
-  currency      String          @default("VND") @db.VarChar(10)
-  duration_days Int
-  features      String[]        @default([])
-  status        String          @default("active") @db.VarChar(20)
-  created_at    DateTime        @default(now()) @db.Timestamp(6)
-  updated_at    DateTime        @default(now()) @db.Timestamp(6)
-  payments      payments[]
-  subscriptions subscriptions[]
+/// One completed or active practice session
+model practice_sessions {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String    @db.Uuid
+  instrument_id String    @db.Uuid
+  status        String    @default("active") @db.VarChar(20) // active | completed | cancelled
+  started_at    DateTime  @db.Timestamp(6)
+  ended_at      DateTime? @db.Timestamp(6)
+  duration_mins Int? // total actual minutes (calculated on end)
+  notes         String?
+  mood          String?   @db.VarChar(20) // great | good | okay | bad
+  created_at    DateTime  @default(now()) @db.Timestamp(6)
+  updated_at    DateTime  @default(now()) @db.Timestamp(6)
 
-  @@index([status, price])
+  users       users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  instruments instruments @relation(fields: [instrument_id], references: [id], onUpdate: NoAction)
+
+  @@index([user_id, started_at(sort: Desc)], map: "practice_sessions_user_recent_idx")
+  @@index([user_id, instrument_id, started_at(sort: Desc)], map: "practice_sessions_user_instrument_idx")
+  @@index([user_id, status], map: "practice_sessions_user_status_idx")
+}
+
+/// User practice goals: daily_minutes, weekly_minutes, weekly_days, streak_days
+model practice_goals {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String   @db.Uuid
+  instrument_id String?  @db.Uuid // null = applies to all instruments
+  goal_type     String   @db.VarChar(30) // daily_minutes | weekly_minutes | weekly_days | streak_days
+  target_value  Int // e.g. 30 (minutes), 5 (days), 7 (streak)
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.Timestamp(6)
+  updated_at    DateTime @default(now()) @db.Timestamp(6)
+
+  users       users        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  instruments instruments? @relation(fields: [instrument_id], references: [id], onUpdate: NoAction)
+
+  @@index([user_id, is_active], map: "practice_goals_user_active_idx")
+}
+
+/// Groups for lessons: e.g. Beginner Guitar, Piano Basics, Rhythm
+model lesson_categories {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @db.VarChar(100)
+  slug        String   @unique @db.VarChar(100)
+  description String?
+  image_url   String?
+  sort_order  Int      @default(0)
+  status      String   @default("active") @db.VarChar(20) // active | hidden
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+
+  lessons lessons[]
+
+  @@index([status, sort_order], map: "lesson_categories_status_order_idx")
+}
+
+/// Learning content, free or VIP-locked
+model lessons {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  category_id   String   @db.Uuid
+  instrument_id String?  @db.Uuid // null = general lesson, not tied to a specific instrument
+  title         String   @db.VarChar(200)
+  slug          String   @unique @db.VarChar(200)
+  content       String // markdown or rich text
+  difficulty    String   @default("beginner") @db.VarChar(20) // beginner | intermediate | advanced
+  is_vip        Boolean  @default(false) // true = VIP-only content
+  sort_order    Int      @default(0)
+  status        String   @default("active") @db.VarChar(20) // active | hidden | draft
+  created_at    DateTime @default(now()) @db.Timestamp(6)
+  updated_at    DateTime @default(now()) @db.Timestamp(6)
+
+  lesson_categories    lesson_categories     @relation(fields: [category_id], references: [id], onUpdate: NoAction)
+  instruments          instruments?          @relation(fields: [instrument_id], references: [id], onUpdate: NoAction)
+  user_lesson_progress user_lesson_progress[]
+
+  @@index([category_id, sort_order], map: "lessons_category_order_idx")
+  @@index([instrument_id, difficulty], map: "lessons_instrument_difficulty_idx")
+  @@index([is_vip, status], map: "lessons_vip_status_idx")
+}
+
+/// Tracks user progress through lessons
+model user_lesson_progress {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String    @db.Uuid
+  lesson_id    String    @db.Uuid
+  status       String    @default("in_progress") @db.VarChar(20) // in_progress | completed
+  completed_at DateTime? @db.Timestamp(6)
+  created_at   DateTime  @default(now()) @db.Timestamp(6)
+  updated_at   DateTime  @default(now()) @db.Timestamp(6)
+
+  users   users   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  lessons lessons @relation(fields: [lesson_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, lesson_id])
+  @@index([user_id, status], map: "user_lesson_progress_user_status_idx")
+}
+
+/// Chord library: diagrams, audio samples, categorized by instrument
+model chords {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  instrument_id String?     @db.Uuid
+  name          String      @db.VarChar(100) // e.g. "C Major", "Am7"
+  symbol        String?     @db.VarChar(20) // e.g. "Cmaj", "Am7"
+  category      String      @db.VarChar(50) // major | minor | seventh | suspended | ...
+  diagram_url   String?
+  audio_url     String?
+  description   String?
+  difficulty    String      @default("beginner") @db.VarChar(20)
+  is_vip        Boolean     @default(false)
+  sort_order    Int         @default(0)
+  status        String      @default("active") @db.VarChar(20)
+  created_at    DateTime    @default(now()) @db.Timestamp(6)
+  updated_at    DateTime    @default(now()) @db.Timestamp(6)
+
+  instruments instruments? @relation(fields: [instrument_id], references: [id], onUpdate: NoAction)
+
+  @@index([instrument_id, category], map: "chords_instrument_category_idx")
+  @@index([is_vip, status], map: "chords_vip_status_idx")
+}
+
+/// Scale library: diagrams, audio samples, categorized by instrument
+model scales {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  instrument_id String?     @db.Uuid
+  name          String      @db.VarChar(100) // e.g. "C Major Scale", "A Minor Pentatonic"
+  key           String?     @db.VarChar(10) // e.g. "C", "Am"
+  scale_type    String      @db.VarChar(50) // major | minor | pentatonic | blues | chromatic | ...
+  diagram_url   String?
+  audio_url     String?
+  description   String?
+  difficulty    String      @default("beginner") @db.VarChar(20)
+  is_vip        Boolean     @default(false)
+  sort_order    Int         @default(0)
+  status        String      @default("active") @db.VarChar(20)
+  created_at    DateTime    @default(now()) @db.Timestamp(6)
+  updated_at    DateTime    @default(now()) @db.Timestamp(6)
+
+  instruments instruments? @relation(fields: [instrument_id], references: [id], onUpdate: NoAction)
+
+  @@index([instrument_id, scale_type], map: "scales_instrument_type_idx")
+  @@index([is_vip, status], map: "scales_vip_status_idx")
 }

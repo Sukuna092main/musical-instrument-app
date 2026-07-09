@@ -6,10 +6,10 @@ import { vipRoutes } from "./modules/vip/vip.routes";
 import { authRoutes } from "./modules/auth/auth.routes";
 import { errorMiddleware, notFoundMiddleware } from "./middlewares/error.middleware";
 import { paymentRoutes } from "./modules/payments/payment.routes";
-import { mediaRoutes } from "./modules/media/media.routes";
 import { chatRoutes } from "./modules/chat/chat.routes";
-import { youtubeRoutes } from "./modules/youtube/youtube.routes";
 import { adminRoutes } from "./modules/admin/admin.routes";
+import { practiceSessionRoutes } from "./modules/practice-session/practice-session.routes";
+import { practiceGoalRoutes } from "./modules/practice-goals/practice-goal.routes";
 
 
 export const app = express();
@@ -38,17 +38,17 @@ app.use("/api/auth", authRoutes);
 // Payments API
 app.use("/api/payments", paymentRoutes);
 
-// Media API
-app.use("/api/media", mediaRoutes);
-
 // Chat API
 app.use("/api/chat", chatRoutes);
 
-// YouTube API
-app.use("/api/youtube", youtubeRoutes);
-
 // Admin API
 app.use("/api/admin", adminRoutes);
+
+// Practice session API
+app.use("/api/practice-sessions", practiceSessionRoutes);
+
+// Practice goals API
+app.use("/api/practice-goals", practiceGoalRoutes);
 
 // Middleware xử lý lỗi 404 khi không tìm thấy route.
 app.use(notFoundMiddleware);

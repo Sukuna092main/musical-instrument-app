@@ -1,9 +1,14 @@
 import { prisma } from "../../config/prisma";
 
+const fixedVipPlanCodes = ["VIP_MONTHLY", "VIP_YEARLY"];
+
 export async function getActiveVipsPlans() {
     return await prisma.vip_plans.findMany({
-        where: { status: "active" },
-        orderBy: { price: "asc" },
+        where: { 
+            status: "active",
+            code: { in: fixedVipPlanCodes },
+        },
+        orderBy: { duration_days: "asc" },
     });
 }
 
@@ -20,4 +25,10 @@ export async function getUserActiveSubscription(userId: string) {
         },
         orderBy: { expired_at: "desc" },
     });
+}
+
+export async function userHasActiveVip(userId: string) {
+  const subscription = await getUserActiveSubscription(userId);
+
+  return Boolean(subscription);
 }

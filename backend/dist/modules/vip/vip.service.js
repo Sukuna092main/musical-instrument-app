@@ -2,11 +2,16 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getActiveVipsPlans = getActiveVipsPlans;
 exports.getUserActiveSubscription = getUserActiveSubscription;
+exports.userHasActiveVip = userHasActiveVip;
 const prisma_1 = require("../../config/prisma");
+const fixedVipPlanCodes = ["VIP_MONTHLY", "VIP_YEARLY"];
 async function getActiveVipsPlans() {
     return await prisma_1.prisma.vip_plans.findMany({
-        where: { status: "active" },
-        orderBy: { price: "asc" },
+        where: {
+            status: "active",
+            code: { in: fixedVipPlanCodes },
+        },
+        orderBy: { duration_days: "asc" },
     });
 }
 async function getUserActiveSubscription(userId) {
@@ -22,4 +27,8 @@ async function getUserActiveSubscription(userId) {
         },
         orderBy: { expired_at: "desc" },
     });
+}
+async function userHasActiveVip(userId) {
+    const subscription = await getUserActiveSubscription(userId);
+    return Boolean(subscription);
 }

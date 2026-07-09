@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defineExtension = exports.NullsOrder = exports.JsonNullValueFilter = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.Vip_plansScalarFieldEnum = exports.UsersScalarFieldEnum = exports.SubscriptionsScalarFieldEnum = exports.PaymentsScalarFieldEnum = exports.Media_itemsScalarFieldEnum = exports.InstrumentsScalarFieldEnum = exports.Chat_messagesScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.defineExtension = exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.ScalesScalarFieldEnum = exports.ChordsScalarFieldEnum = exports.User_lesson_progressScalarFieldEnum = exports.LessonsScalarFieldEnum = exports.Lesson_categoriesScalarFieldEnum = exports.Practice_goalsScalarFieldEnum = exports.Practice_sessionsScalarFieldEnum = exports.User_instrumentsScalarFieldEnum = exports.SubscriptionsScalarFieldEnum = exports.PaymentsScalarFieldEnum = exports.Vip_plansScalarFieldEnum = exports.Chat_messagesScalarFieldEnum = exports.InstrumentsScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 /**
  * Prisma Errors
@@ -103,13 +103,20 @@ exports.JsonNull = runtime.JsonNull;
  */
 exports.AnyNull = runtime.AnyNull;
 exports.ModelName = {
-    chat_messages: 'chat_messages',
+    users: 'users',
     instruments: 'instruments',
-    media_items: 'media_items',
+    chat_messages: 'chat_messages',
+    vip_plans: 'vip_plans',
     payments: 'payments',
     subscriptions: 'subscriptions',
-    users: 'users',
-    vip_plans: 'vip_plans'
+    user_instruments: 'user_instruments',
+    practice_sessions: 'practice_sessions',
+    practice_goals: 'practice_goals',
+    lesson_categories: 'lesson_categories',
+    lessons: 'lessons',
+    user_lesson_progress: 'user_lesson_progress',
+    chords: 'chords',
+    scales: 'scales'
 };
 /**
  * Enums
@@ -120,14 +127,17 @@ exports.TransactionIsolationLevel = runtime.makeStrictEnum({
     RepeatableRead: 'RepeatableRead',
     Serializable: 'Serializable'
 });
-exports.Chat_messagesScalarFieldEnum = {
+exports.UsersScalarFieldEnum = {
     id: 'id',
-    user_id: 'user_id',
-    sender: 'sender',
-    message: 'message',
-    conversation_id: 'conversation_id',
-    metadata: 'metadata',
-    created_at: 'created_at'
+    full_name: 'full_name',
+    email: 'email',
+    password_hash: 'password_hash',
+    avatar_url: 'avatar_url',
+    phone: 'phone',
+    role: 'role',
+    status: 'status',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
 };
 exports.InstrumentsScalarFieldEnum = {
     id: 'id',
@@ -142,16 +152,25 @@ exports.InstrumentsScalarFieldEnum = {
     created_at: 'created_at',
     updated_at: 'updated_at'
 };
-exports.Media_itemsScalarFieldEnum = {
+exports.Chat_messagesScalarFieldEnum = {
     id: 'id',
     user_id: 'user_id',
-    instrument_id: 'instrument_id',
-    type: 'type',
-    title: 'title',
-    source_url: 'source_url',
-    youtube_video_id: 'youtube_video_id',
-    file_url: 'file_url',
-    duration_seconds: 'duration_seconds',
+    sender: 'sender',
+    message: 'message',
+    conversation_id: 'conversation_id',
+    metadata: 'metadata',
+    created_at: 'created_at'
+};
+exports.Vip_plansScalarFieldEnum = {
+    id: 'id',
+    code: 'code',
+    name: 'name',
+    description: 'description',
+    price: 'price',
+    currency: 'currency',
+    duration_days: 'duration_days',
+    features: 'features',
+    status: 'status',
     created_at: 'created_at',
     updated_at: 'updated_at'
 };
@@ -179,27 +198,99 @@ exports.SubscriptionsScalarFieldEnum = {
     created_at: 'created_at',
     updated_at: 'updated_at'
 };
-exports.UsersScalarFieldEnum = {
+exports.User_instrumentsScalarFieldEnum = {
     id: 'id',
-    full_name: 'full_name',
-    email: 'email',
-    password_hash: 'password_hash',
-    avatar_url: 'avatar_url',
-    phone: 'phone',
-    role: 'role',
+    user_id: 'user_id',
+    instrument_id: 'instrument_id',
+    skill_level: 'skill_level',
+    is_primary: 'is_primary',
+    created_at: 'created_at'
+};
+exports.Practice_sessionsScalarFieldEnum = {
+    id: 'id',
+    user_id: 'user_id',
+    instrument_id: 'instrument_id',
+    status: 'status',
+    started_at: 'started_at',
+    ended_at: 'ended_at',
+    duration_mins: 'duration_mins',
+    notes: 'notes',
+    mood: 'mood',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+};
+exports.Practice_goalsScalarFieldEnum = {
+    id: 'id',
+    user_id: 'user_id',
+    instrument_id: 'instrument_id',
+    goal_type: 'goal_type',
+    target_value: 'target_value',
+    is_active: 'is_active',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+};
+exports.Lesson_categoriesScalarFieldEnum = {
+    id: 'id',
+    name: 'name',
+    slug: 'slug',
+    description: 'description',
+    image_url: 'image_url',
+    sort_order: 'sort_order',
     status: 'status',
     created_at: 'created_at',
     updated_at: 'updated_at'
 };
-exports.Vip_plansScalarFieldEnum = {
+exports.LessonsScalarFieldEnum = {
     id: 'id',
-    code: 'code',
+    category_id: 'category_id',
+    instrument_id: 'instrument_id',
+    title: 'title',
+    slug: 'slug',
+    content: 'content',
+    difficulty: 'difficulty',
+    is_vip: 'is_vip',
+    sort_order: 'sort_order',
+    status: 'status',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+};
+exports.User_lesson_progressScalarFieldEnum = {
+    id: 'id',
+    user_id: 'user_id',
+    lesson_id: 'lesson_id',
+    status: 'status',
+    completed_at: 'completed_at',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+};
+exports.ChordsScalarFieldEnum = {
+    id: 'id',
+    instrument_id: 'instrument_id',
     name: 'name',
+    symbol: 'symbol',
+    category: 'category',
+    diagram_url: 'diagram_url',
+    audio_url: 'audio_url',
     description: 'description',
-    price: 'price',
-    currency: 'currency',
-    duration_days: 'duration_days',
-    features: 'features',
+    difficulty: 'difficulty',
+    is_vip: 'is_vip',
+    sort_order: 'sort_order',
+    status: 'status',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+};
+exports.ScalesScalarFieldEnum = {
+    id: 'id',
+    instrument_id: 'instrument_id',
+    name: 'name',
+    key: 'key',
+    scale_type: 'scale_type',
+    diagram_url: 'diagram_url',
+    audio_url: 'audio_url',
+    description: 'description',
+    difficulty: 'difficulty',
+    is_vip: 'is_vip',
+    sort_order: 'sort_order',
     status: 'status',
     created_at: 'created_at',
     updated_at: 'updated_at'
@@ -216,13 +307,13 @@ exports.QueryMode = {
     default: 'default',
     insensitive: 'insensitive'
 };
+exports.NullsOrder = {
+    first: 'first',
+    last: 'last'
+};
 exports.JsonNullValueFilter = {
     DbNull: exports.DbNull,
     JsonNull: exports.JsonNull,
     AnyNull: exports.AnyNull
-};
-exports.NullsOrder = {
-    first: 'first',
-    last: 'last'
 };
 exports.defineExtension = runtime.Extensions.defineExtension;

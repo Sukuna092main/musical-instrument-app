@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createChatMessage = createChatMessage;
 exports.getChatMessages = getChatMessages;
 const prisma_1 = require("../../config/prisma");
-const youtube_service_1 = require("../youtube/youtube.service");
 function normalizeText(value) {
     return value
         .toLowerCase()
@@ -13,90 +12,60 @@ function normalizeText(value) {
 function detectLanguage(message) {
     const hasVietnameseCharacters = /[ăâđêôơưáàảãạắằẳẵặấầẩẫậéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ]/i.test(message);
     const normalized = normalizeText(message);
-    const hasVietnameseWords = /\b(toi|ban|giup|tim|nhac|bai|dang nhap|thanh toan|goi vip|nhac cu)\b/.test(normalized);
+    const hasVietnameseWords = /\b(toi|ban|giup|tim|nhac|bai|dang nhap|thanh toan|goi vip|nhac cu|luyen tap|bai hoc)\b/.test(normalized);
     return hasVietnameseCharacters || hasVietnameseWords ? "vi" : "en";
 }
 function includesAny(text, keywords) {
     return keywords.some((keyword) => text.includes(keyword));
 }
-function shouldSearchYoutube(message) {
-    const text = normalizeText(message);
-    const hasSearchIntent = includesAny(text, [
-        "tim",
-        "find",
-        "search",
-        "look up",
-        "play",
-        "nghe",
-        "listen",
-    ]);
-    const hasMusicIntent = includesAny(text, [
-        "youtube",
-        "bai hat",
-        "song",
-        "music",
-        "track",
-        "nhac",
-        "cover",
-        "official",
-    ]);
-    return hasSearchIntent && hasMusicIntent;
-}
-function isYoutubeHowToQuestion(message) {
-    const text = normalizeText(message);
-    return (text.includes("youtube") &&
-        includesAny(text, ["how", "cach", "paste", "dan", "link", "player"]));
-}
-function extractYoutubeSearchQuery(message) {
-    const quoted = message.match(/["'“”](.+?)["'“”]/);
-    if (quoted?.[1]) {
-        return quoted[1].trim();
-    }
-    return message
-        .replace(/\b(tìm giúp tôi|tim giup toi|tìm cho tôi|tim cho toi)\b/gi, "")
-        .replace(/\b(tìm|tim|find|search|look up|please|giúp tôi|giup toi|cho tôi|cho toi)\b/gi, "")
-        .replace(/\b(bài hát|bai hat|bài|bai|song|music|track|nhạc|nhac)\b/gi, "")
-        .replace(/\b(trên youtube|tren youtube|on youtube|youtube|link)\b/gi, "")
-        .replace(/\b(tôi muốn nghe|toi muon nghe|i want to listen to|i want|listen to|nghe)\b/gi, "")
-        .replace(/[?!.,]+$/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-}
-function formatYoutubeResults(language, query, videos) {
-    if (videos.length === 0) {
-        return language === "vi"
-            ? `Mình chưa tìm thấy kết quả YouTube phù hợp cho "${query}". Bạn thử nhập rõ hơn tên bài hát và nghệ sĩ nhé.`
-            : `I could not find a suitable YouTube result for "${query}". Try using the song title together with the artist name.`;
-    }
-    const list = videos
-        .slice(0, 5)
-        .map((video, index) => `${index + 1}. ${video.title} - ${video.channelTitle}\n${video.url}`)
-        .join("\n\n");
-    return language === "vi"
-        ? `Mình tìm thấy một vài kết quả YouTube cho "${query}":\n\n${list}\n\nLưu ý: app chỉ mở/phát link YouTube hợp lệ, không tải video từ YouTube.`
-        : `I found a few YouTube results for "${query}":\n\n${list}\n\nNote: the app only opens/plays valid YouTube links and does not download YouTube videos.`;
-}
 function getSupportReply(language, message) {
     const text = normalizeText(message);
-    if (isYoutubeHowToQuestion(message)) {
-        return language === "vi"
-            ? "Bạn có thể dán link YouTube vào màn hình Player để phát trong app. App sẽ dùng YouTube player hợp lệ và không tải video từ YouTube."
-            : "You can paste a YouTube link into the Player screen. The app will play it through a valid YouTube player and will not download YouTube videos.";
-    }
     if (includesAny(text, ["vip", "premium", "goi", "subscription", "subscribe"])) {
         return language === "vi"
-            ? "Gói VIP dùng để mở khóa các nhạc cụ cao cấp hơn. User Free vẫn xem và dùng được nhạc cụ miễn phí; khi nâng cấp VIP, app sẽ mở thêm các nhạc cụ premium và quyền lợi đi kèm."
-            : "VIP unlocks premium instruments and extra benefits. Free users can still use free instruments; VIP users get access to premium instruments.";
+            ? "Gói VIP mở khóa bài học, hợp âm và gam cao cấp. User Free vẫn dùng được nội dung miễn phí; khi nâng cấp VIP, app sẽ mở thêm nội dung premium."
+            : "VIP unlocks premium lessons, chords and scales. Free users can still access free content; VIP users get access to premium learning materials.";
     }
     if (includesAny(text, ["payment", "pay", "thanh toan", "mua", "billing"])) {
         return language === "vi"
-            ? "Thanh toán VIP sẽ được xử lý qua hệ thống thanh toán phù hợp với nền tảng phát hành. Với app mobile phát hành chính thức, gói digital/VIP thường nên đi qua Apple In-App Purchase hoặc Google Play Billing."
-            : "VIP payment should be handled through the correct payment system for the release platform. For official mobile app stores, digital VIP packages usually need Apple In-App Purchase or Google Play Billing.";
+            ? "Thanh toán VIP sẽ được xử lý qua hệ thống thanh toán phù hợp với nền tảng phát hành. Với app mobile, gói VIP thường đi qua Apple In-App Purchase hoặc Google Play Billing."
+            : "VIP payment is handled through the correct payment system for the release platform. For mobile apps, VIP packages usually use Apple In-App Purchase or Google Play Billing.";
     }
-    if (includesAny(text, ["mp4", "upload", "file", "video"])) {
+    if (includesAny(text, [
+        "practice",
+        "luyen tap",
+        "tap luyen",
+        "session",
+        "timer",
+        "gio tap",
+    ])) {
         return language === "vi"
-            ? "Bạn có thể chọn file MP4 từ thiết bị để phát trong Player. Khi có upload cloud, app nên lưu file ở storage riêng và chỉ lưu metadata trong database."
-            : "You can choose an MP4 file from the device and play it in the Player. For cloud upload, the app should store the file in object storage and keep only metadata in the database.";
+            ? "Bạn có thể bắt đầu buổi tập bằng cách chọn nhạc cụ và nhấn nút Start. App sẽ đếm thời gian và lưu lịch sử tập luyện của bạn."
+            : "You can start a practice session by selecting an instrument and pressing Start. The app will track your time and save your practice history.";
+    }
+    if (includesAny(text, [
+        "goal",
+        "muc tieu",
+        "target",
+        "streak",
+        "chuoi",
+    ])) {
+        return language === "vi"
+            ? "Bạn có thể đặt mục tiêu luyện tập như 30 phút/ngày hoặc 5 ngày/tuần. App sẽ theo dõi streak (chuỗi ngày tập liên tục) để giữ động lực."
+            : "You can set practice goals like 30 minutes/day or 5 days/week. The app tracks your streaks (consecutive practice days) to keep you motivated.";
+    }
+    if (includesAny(text, [
+        "lesson",
+        "bai hoc",
+        "learn",
+        "hoc",
+        "chord",
+        "hop am",
+        "scale",
+        "gam",
+    ])) {
+        return language === "vi"
+            ? "App có thư viện bài học, hợp âm và gam cho từng nhạc cụ. Nội dung chia thành Free và VIP. Bạn có thể theo dõi tiến trình học của mình."
+            : "The app has a library of lessons, chords and scales for each instrument. Content is divided into Free and VIP. You can track your learning progress.";
     }
     if (includesAny(text, [
         "instrument",
@@ -107,8 +76,8 @@ function getSupportReply(language, message) {
         "violin",
     ])) {
         return language === "vi"
-            ? "App có danh sách nhạc cụ Free và VIP. Người dùng có thể xem chi tiết nhạc cụ, nghe/thưởng thức cùng YouTube hoặc MP4, và mở khóa nhạc cụ cao cấp bằng VIP."
-            : "The app has Free and VIP instruments. Users can view instrument details, enjoy music with YouTube or MP4 playback, and unlock premium instruments with VIP.";
+            ? "App hỗ trợ nhiều nhạc cụ. Bạn có thể chọn nhạc cụ đang luyện tập, xem bài học và hợp âm riêng cho từng loại."
+            : "The app supports multiple instruments. You can select the instruments you're practicing and view lessons and chords specific to each one.";
     }
     if (includesAny(text, [
         "login",
@@ -119,33 +88,20 @@ function getSupportReply(language, message) {
         "tai khoan",
     ])) {
         return language === "vi"
-            ? "Bạn có thể đăng ký hoặc đăng nhập để lưu lịch sử media, kiểm tra trạng thái VIP và dùng các tính năng cá nhân hóa."
-            : "You can register or log in to save media history, check VIP status, and use personalized features.";
+            ? "Bạn có thể đăng ký hoặc đăng nhập để lưu lịch sử luyện tập, theo dõi streak và dùng các tính năng cá nhân hóa."
+            : "You can register or log in to save practice history, track streaks, and use personalized features.";
     }
     if (includesAny(text, ["hello", "hi", "xin chao", "chao"])) {
         return language === "vi"
-            ? "Chào bạn! Mình có thể hỗ trợ về cách dùng app, nhạc cụ, VIP, thanh toán, YouTube link và MP4."
-            : "Hi! I can help with app usage, instruments, VIP, payments, YouTube links, and MP4 playback.";
+            ? "Chào bạn! Mình có thể hỗ trợ về cách dùng app, luyện tập nhạc cụ, bài học, hợp âm, gam, VIP và thanh toán."
+            : "Hi! I can help with app usage, instrument practice, lessons, chords, scales, VIP, and payments.";
     }
     return language === "vi"
-        ? "Mình có thể hỗ trợ các câu hỏi về app, nhạc cụ Free/VIP, thanh toán, YouTube link, MP4 và lịch sử nghe nhạc. Bạn có thể hỏi cụ thể hơn nhé."
-        : "I can help with questions about the app, Free/VIP instruments, payments, YouTube links, MP4 playback, and music history. Please ask a more specific question.";
+        ? "Mình có thể hỗ trợ các câu hỏi về luyện tập nhạc cụ, bài học, hợp âm, gam, mục tiêu, streak, VIP và thanh toán. Bạn có thể hỏi cụ thể hơn nhé."
+        : "I can help with questions about instrument practice, lessons, chords, scales, goals, streaks, VIP, and payments. Please ask a more specific question.";
 }
 async function generateAssistantReply(_userId, message) {
     const language = detectLanguage(message);
-    if (shouldSearchYoutube(message)) {
-        const searchQuery = extractYoutubeSearchQuery(message) || message.trim();
-        try {
-            const videos = await (0, youtube_service_1.searchYoutubeVideos)(searchQuery);
-            return formatYoutubeResults(language, searchQuery, videos);
-        }
-        catch (error) {
-            console.error("YouTube search failed in chat:", error);
-            return language === "vi"
-                ? "Mình chưa tìm YouTube được lúc này. Bạn thử lại sau hoặc nhập trực tiếp link YouTube vào Player nhé."
-                : "I cannot search YouTube right now. Please try again later or paste a YouTube link directly into the Player.";
-        }
-    }
     return getSupportReply(language, message);
 }
 async function createChatMessage(userId, message) {
