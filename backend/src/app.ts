@@ -10,6 +10,8 @@ import { chatRoutes } from "./modules/chat/chat.routes";
 import { adminRoutes } from "./modules/admin/admin.routes";
 import { practiceSessionRoutes } from "./modules/practice-session/practice-session.routes";
 import { practiceGoalRoutes } from "./modules/practice-goals/practice-goal.routes";
+import { userInstrumentRoutes } from "./modules/user-instruments/user-instrument.routes";
+import { lessonRoutes } from "./modules/lessons/lesson.routes";
 
 
 export const app = express();
@@ -49,6 +51,12 @@ app.use("/api/practice-sessions", practiceSessionRoutes);
 
 // Practice goals API
 app.use("/api/practice-goals", practiceGoalRoutes);
+
+// User's Instrument API
+app.use("/api/user-instruments", userInstrumentRoutes);
+
+// Lession API
+app.use("/api/lessons", lessonRoutes);
 
 // Middleware xử lý lỗi 404 khi không tìm thấy route.
 app.use(notFoundMiddleware);

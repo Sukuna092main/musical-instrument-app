@@ -15,7 +15,10 @@ import {
     showAdminVipPlan,
     updateAdminVipPlan,
     listAdminPayments,
-    showAdminPayment
+    showAdminPayment,
+    listAdminSubscriptions,
+    showAdminSubscription,
+    updateAdminSubscriptionStatus
  } from "./admin.controller";
 
 export const adminRoutes = Router();
@@ -77,3 +80,15 @@ adminRoutes.get("/payments", listAdminPayments);
 // GET /api/admin/payments/:id
 // Return one payment detail.
 adminRoutes.get("/payments/:id", showAdminPayment);
+
+// GET /api/admin/subscriptions
+// List subscriptions with pagination and filters.
+adminRoutes.get("/subscriptions", listAdminSubscriptions);
+
+// GET /api/admin/subscriptions/:id
+// Return one subscription detail.
+adminRoutes.get("/subscriptions/:id", showAdminSubscription);
+
+// PATCH /api/admin/subscriptions/:id/status
+// Update subscription status.
+adminRoutes.patch("/subscriptions/:id/status", updateAdminSubscriptionStatus);
