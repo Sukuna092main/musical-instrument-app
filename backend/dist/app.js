@@ -13,6 +13,12 @@ const error_middleware_1 = require("./middlewares/error.middleware");
 const payment_routes_1 = require("./modules/payments/payment.routes");
 const chat_routes_1 = require("./modules/chat/chat.routes");
 const admin_routes_1 = require("./modules/admin/admin.routes");
+const practice_session_routes_1 = require("./modules/practice-session/practice-session.routes");
+const practice_goal_routes_1 = require("./modules/practice-goals/practice-goal.routes");
+const user_instrument_routes_1 = require("./modules/user-instruments/user-instrument.routes");
+const lesson_routes_1 = require("./modules/lessons/lesson.routes");
+const user_lesson_progress_routes_1 = require("./modules/user-lessons-progress/user-lesson-progress.routes");
+const scale_routes_1 = require("./modules/scales/scale.routes");
 exports.app = (0, express_1.default)();
 exports.app.use((0, cors_1.default)());
 exports.app.use(express_1.default.json());
@@ -36,7 +42,19 @@ exports.app.use("/api/payments", payment_routes_1.paymentRoutes);
 exports.app.use("/api/chat", chat_routes_1.chatRoutes);
 // Admin API
 exports.app.use("/api/admin", admin_routes_1.adminRoutes);
+// Practice session API
+exports.app.use("/api/practice-sessions", practice_session_routes_1.practiceSessionRoutes);
+// Practice goals API
+exports.app.use("/api/practice-goals", practice_goal_routes_1.practiceGoalRoutes);
+// User's Instrument API
+exports.app.use("/api/user-instruments", user_instrument_routes_1.userInstrumentRoutes);
+// Lession API
+exports.app.use("/api/lessons", lesson_routes_1.lessonRoutes);
+// User Lesson Progress API
+exports.app.use("/api/user-lesson-progress", user_lesson_progress_routes_1.userLessonProgressRoutes);
 // Middleware xử lý lỗi 404 khi không tìm thấy route.
+// Scales API
+exports.app.use("/api/scales", scale_routes_1.scaleRoutes);
 exports.app.use(error_middleware_1.notFoundMiddleware);
 // Global error handler
 exports.app.use(error_middleware_1.errorMiddleware);

@@ -12,6 +12,8 @@ import { practiceSessionRoutes } from "./modules/practice-session/practice-sessi
 import { practiceGoalRoutes } from "./modules/practice-goals/practice-goal.routes";
 import { userInstrumentRoutes } from "./modules/user-instruments/user-instrument.routes";
 import { lessonRoutes } from "./modules/lessons/lesson.routes";
+import { userLessonProgressRoutes } from "./modules/user-lessons-progress/user-lesson-progress.routes";
+import { scaleRoutes } from "./modules/scales/scale.routes";
 
 
 export const app = express();
@@ -58,7 +60,13 @@ app.use("/api/user-instruments", userInstrumentRoutes);
 // Lession API
 app.use("/api/lessons", lessonRoutes);
 
+// User Lesson Progress API
+app.use("/api/user-lesson-progress", userLessonProgressRoutes);
+
 // Middleware xử lý lỗi 404 khi không tìm thấy route.
+// Scales API
+app.use("/api/scales", scaleRoutes);
+
 app.use(notFoundMiddleware);
 
 // Global error handler

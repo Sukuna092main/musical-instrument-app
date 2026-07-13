@@ -4,9 +4,11 @@ exports.adminRoutes = void 0;
 const express_1 = require("express");
 const auth_middleware_1 = require("../../middlewares/auth.middleware");
 const admin_middleware_1 = require("../../middlewares/admin.middleware");
+const admin_content_routes_1 = require("../admin-content/admin-content.routes");
 const admin_controller_1 = require("./admin.controller");
 exports.adminRoutes = (0, express_1.Router)();
 exports.adminRoutes.use(auth_middleware_1.authMiddleware, admin_middleware_1.adminMiddleware);
+exports.adminRoutes.use("/", admin_content_routes_1.adminContentRoutes);
 // GET /api/admin/dashboard
 // Return revenue and operational summary for admin dashboard.
 exports.adminRoutes.get("/dashboard", admin_controller_1.showAdminDashboard);
@@ -49,3 +51,12 @@ exports.adminRoutes.get("/payments", admin_controller_1.listAdminPayments);
 // GET /api/admin/payments/:id
 // Return one payment detail.
 exports.adminRoutes.get("/payments/:id", admin_controller_1.showAdminPayment);
+// GET /api/admin/subscriptions
+// List subscriptions with pagination and filters.
+exports.adminRoutes.get("/subscriptions", admin_controller_1.listAdminSubscriptions);
+// GET /api/admin/subscriptions/:id
+// Return one subscription detail.
+exports.adminRoutes.get("/subscriptions/:id", admin_controller_1.showAdminSubscription);
+// PATCH /api/admin/subscriptions/:id/status
+// Update subscription status.
+exports.adminRoutes.patch("/subscriptions/:id/status", admin_controller_1.updateAdminSubscriptionStatus);

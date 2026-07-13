@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 import { adminMiddleware } from "../../middlewares/admin.middleware";
+import { adminContentRoutes } from "../admin-content/admin-content.routes";
 import { 
     showAdminDashboard,
     listAdminUsers,
@@ -24,6 +25,8 @@ import {
 export const adminRoutes = Router();
 
 adminRoutes.use(authMiddleware, adminMiddleware);
+
+adminRoutes.use("/", adminContentRoutes);
 
 // GET /api/admin/dashboard
 // Return revenue and operational summary for admin dashboard.
