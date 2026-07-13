@@ -10,6 +10,7 @@ class AuthUser {
     required this.id,
     required this.fullName,
     required this.email,
+    required this.avatarUrl,
     required this.role,
     required this.status,
   });
@@ -17,6 +18,7 @@ class AuthUser {
   final String id;
   final String fullName;
   final String email;
+  final String? avatarUrl;
   final String role;
   final String status;
 
@@ -25,6 +27,7 @@ class AuthUser {
       id: json['id'] as String,
       fullName: json['full_name'] as String,
       email: json['email'] as String,
+      avatarUrl: json['avatar_url'] as String?,
       role: json['role'] as String,
       status: json['status'] as String,
     );

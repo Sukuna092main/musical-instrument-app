@@ -6,6 +6,7 @@ import '../../practice/data/practice_api.dart';
 import '../../practice/presentation/practice_timer_screen.dart';
 import '../../practice/presentation/practice_history_screen.dart';
 import '../../auth/presentation/auth_screen.dart';
+import '../../profile/presentation/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.auth});
@@ -108,6 +109,17 @@ class _HomeScreenState extends State<HomeScreen> {
             tooltip: 'Log out',
             icon: const Icon(Icons.logout),
             onPressed: _logout,
+          ),
+          IconButton(
+            tooltip: 'Profile',
+            icon: const Icon(Icons.account_circle_outlined),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ProfileScreen(user: widget.auth.user),
+                ),
+              );
+            },
           ),
         ],
       ),

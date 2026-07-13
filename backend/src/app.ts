@@ -14,12 +14,15 @@ import { userInstrumentRoutes } from "./modules/user-instruments/user-instrument
 import { lessonRoutes } from "./modules/lessons/lesson.routes";
 import { userLessonProgressRoutes } from "./modules/user-lessons-progress/user-lesson-progress.routes";
 import { scaleRoutes } from "./modules/scales/scale.routes";
+import { uploadsDirectory } from "./config/avatar-upload";
+import { userRoutes } from "./modules/users/user.routes";
 
 
 export const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(uploadsDirectory));
 
 // GET /health
 // Kiểm tra server backend còn chạy hay không.
@@ -66,6 +69,9 @@ app.use("/api/user-lesson-progress", userLessonProgressRoutes);
 // Middleware xử lý lỗi 404 khi không tìm thấy route.
 // Scales API
 app.use("/api/scales", scaleRoutes);
+
+// Users API
+app.use("/api/users", userRoutes);
 
 app.use(notFoundMiddleware);
 
