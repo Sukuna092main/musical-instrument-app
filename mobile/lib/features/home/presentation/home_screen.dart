@@ -7,6 +7,8 @@ import '../../practice/presentation/practice_timer_screen.dart';
 import '../../practice/presentation/practice_history_screen.dart';
 import '../../auth/presentation/auth_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
+import '../../goals/presentation/goals_screen.dart';
+import '../../lessons/presentation/lesson_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.auth});
@@ -50,6 +52,26 @@ class _HomeScreenState extends State<HomeScreen> {
     await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const PracticeHistoryScreen()));
+
+    if (mounted) {
+      await _refresh();
+    }
+  }
+
+  Future<void> _openGoals() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const GoalsScreen()));
+
+    if (mounted) {
+      await _refresh();
+    }
+  }
+
+  Future<void> _openLessons() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const LessonsScreen()));
 
     if (mounted) {
       await _refresh();
@@ -192,13 +214,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icons.flag_outlined,
                   title: 'Goals',
                   subtitle: 'Track daily minutes, weekly days, and streaks',
-                  onTap: () {},
+                  onTap: () {
+                    _openGoals();
+                  },
                 ),
                 _ActionCard(
                   icon: Icons.menu_book_outlined,
                   title: 'Learn',
                   subtitle: 'Browse lessons, chords, and scales',
-                  onTap: () {},
+                  onTap: () {
+                    _openLessons();
+                  },
                 ),
               ],
             );
