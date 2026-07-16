@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/config/api_config.dart';
+import '../../../core/network/api_client.dart';
 
 class AuthUser {
   AuthUser({
@@ -11,6 +12,7 @@ class AuthUser {
     required this.fullName,
     required this.email,
     required this.avatarUrl,
+    required this.phone,
     required this.role,
     required this.status,
   });
@@ -19,6 +21,7 @@ class AuthUser {
   final String fullName;
   final String email;
   final String? avatarUrl;
+  final String? phone;
   final String role;
   final String status;
 
@@ -28,6 +31,7 @@ class AuthUser {
       fullName: json['full_name'] as String,
       email: json['email'] as String,
       avatarUrl: json['avatar_url'] as String?,
+      phone: json['phone'] as String?,
       role: json['role'] as String,
       status: json['status'] as String,
     );
@@ -65,6 +69,17 @@ class AuthApi {
       'email': email,
       'password': password,
     });
+  }
+
+  final ApiClient _client = ApiClient();
+
+  /// GET /api/users/me — lấy lại user từ token khi mở app.
+  Future<AuthUser> getMe() async {
+    final response = Map<String, dynamic>.from(
+      await _client.get('/api/users/me') as Map,
+    );
+    final data = Map<String, dynamic>.from(response['data'] as Map);
+    return AuthUser.fromJson(Map<String, dynamic>.from(data['user'] as Map));
   }
 
   Future<AuthResult> _postAuth(String path, Map<String, dynamic> body) async {

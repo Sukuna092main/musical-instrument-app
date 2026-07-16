@@ -16,6 +16,7 @@ import { userLessonProgressRoutes } from "./modules/user-lessons-progress/user-l
 import { scaleRoutes } from "./modules/scales/scale.routes";
 import { uploadsDirectory } from "./config/avatar-upload";
 import { userRoutes } from "./modules/users/user.routes";
+import { chordRoutes } from "./modules/chords/chord.routes";
 
 
 export const app = express();
@@ -66,13 +67,16 @@ app.use("/api/lessons", lessonRoutes);
 // User Lesson Progress API
 app.use("/api/user-lesson-progress", userLessonProgressRoutes);
 
-// Middleware xử lý lỗi 404 khi không tìm thấy route.
 // Scales API
 app.use("/api/scales", scaleRoutes);
+
+// Chords API
+app.use("/api/chords", chordRoutes);
 
 // Users API
 app.use("/api/users", userRoutes);
 
+// Middleware xử lý lỗi 404 khi không tìm thấy route.
 app.use(notFoundMiddleware);
 
 // Global error handler

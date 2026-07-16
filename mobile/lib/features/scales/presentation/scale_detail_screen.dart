@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../core/network/api_client.dart';
 import '../data/scale_api.dart';
+import '../../vip/presentation/vip_screen.dart';
+import '../../../shared/widgets/audio_player_bar.dart';
 
 class ScaleDetailScreen extends StatefulWidget {
   const ScaleDetailScreen({super.key, required this.scaleId});
@@ -21,6 +23,16 @@ class _ScaleDetailScreenState extends State<ScaleDetailScreen> {
     super.initState();
     _api = ScalesApi(ApiClient());
     _scaleFuture = _api.getScale(widget.scaleId);
+  }
+
+  Future<void> _openVip() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const VipScreen()));
+    if (!mounted) return;
+    setState(() {
+      _scaleFuture = _api.getScale(widget.scaleId);
+    });
   }
 
   @override
@@ -83,9 +95,14 @@ class _ScaleDetailScreenState extends State<ScaleDetailScreen> {
               ),
               const SizedBox(height: 24),
               if (!scale.canAccess)
-                const _LockedScale()
+                _LockedScale(onUpgrade: _openVip)
               else ...[
                 _ScaleDiagram(url: scale.diagramUrl),
+                if (scale.audioUrl != null &&
+                    scale.audioUrl!.trim().isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  AudioPlayerBar(audioUrl: scale.audioUrl!),
+                ],
                 if (scale.description != null &&
                     scale.description!.trim().isNotEmpty) ...[
                   const SizedBox(height: 24),
@@ -184,7 +201,9 @@ class _DiagramPlaceholder extends StatelessWidget {
 }
 
 class _LockedScale extends StatelessWidget {
-  const _LockedScale();
+  const _LockedScale({required this.onUpgrade});
+
+  final VoidCallback onUpgrade;
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +213,7 @@ class _LockedScale extends StatelessWidget {
         color: const Color(0xFFFFF4DE),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Column(
+      child: Column(
         children: [
           Icon(
             Icons.workspace_premium_outlined,
@@ -207,6 +226,12 @@ class _LockedScale extends StatelessWidget {
           Text(
             'Upgrade to VIP to unlock this scale diagram.',
             textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: onUpgrade,
+            icon: const Icon(Icons.workspace_premium),
+            label: const Text('Upgrade to VIP'),
           ),
         ],
       ),

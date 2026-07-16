@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'features/auth/presentation/auth_screen.dart';
+import 'features/auth/presentation/splash_screen.dart';
 
 class MusicPracticeApp extends StatelessWidget {
   const MusicPracticeApp({super.key});
@@ -14,7 +14,7 @@ class MusicPracticeApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2563EB)),
         useMaterial3: true,
       ),
-      home: const AuthScreen(),
+      home: const SplashScreen(),
     );
   }
 }

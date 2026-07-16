@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/network/api_client.dart';
 import '../data/practice_api.dart';
 import '../data/practice_timer_api.dart';
+import '../../instruments/presentation/instruments_screen.dart';
 
 class PracticeTimerScreen extends StatefulWidget {
   const PracticeTimerScreen({super.key});
@@ -78,6 +79,16 @@ class _PracticeTimerScreenState extends State<PracticeTimerScreen> {
         _error = _errorMessage(error);
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _openInstruments() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const InstrumentsScreen()));
+
+    if (mounted) {
+      await _load();
     }
   }
 
@@ -197,6 +208,7 @@ class _PracticeTimerScreenState extends State<PracticeTimerScreen> {
                 setState(() => _selectedInstrument = instrument);
               },
               onStart: _startSession,
+              onAddInstrument: _openInstruments,
             )
           : _ActiveSessionView(
               session: _activeSession!,
@@ -220,6 +232,7 @@ class _StartSessionView extends StatelessWidget {
     required this.isStarting,
     required this.onInstrumentChanged,
     required this.onStart,
+    required this.onAddInstrument,
   });
 
   final List<UserPracticeInstrument> instruments;
@@ -227,6 +240,7 @@ class _StartSessionView extends StatelessWidget {
   final bool isStarting;
   final ValueChanged<UserPracticeInstrument?> onInstrumentChanged;
   final VoidCallback onStart;
+  final VoidCallback onAddInstrument;
 
   @override
   Widget build(BuildContext context) {
@@ -270,6 +284,12 @@ class _StartSessionView extends StatelessWidget {
           const Text(
             'You have not added an instrument to your profile yet.',
             textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: onAddInstrument,
+            icon: const Icon(Icons.add),
+            label: const Text('Add instrument'),
           ),
         ],
         const SizedBox(height: 20),

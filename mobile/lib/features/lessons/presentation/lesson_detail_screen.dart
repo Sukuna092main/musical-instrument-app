@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/network/api_client.dart';
 import '../data/lesson_api.dart';
+import '../../vip/presentation/vip_screen.dart';
 
 class LessonDetailScreen extends StatefulWidget {
   const LessonDetailScreen({super.key, required this.slug});
@@ -49,6 +50,16 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
         _actionError = error.toString().replaceFirst('Exception: ', '');
       });
     }
+  }
+
+  Future<void> _openVip() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const VipScreen()));
+    if (!mounted) return;
+    setState(() {
+      _lessonFuture = _api.getLesson(widget.slug);
+    });
   }
 
   @override
@@ -111,7 +122,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
               ),
               const SizedBox(height: 24),
               if (!lesson.canAccess)
-                const _LockedLesson()
+                _LockedLesson(onUpgrade: _openVip)
               else ...[
                 if (lesson.content == null || lesson.content!.trim().isEmpty)
                   const Text('Lesson content is being prepared.')
@@ -168,7 +179,9 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
 }
 
 class _LockedLesson extends StatelessWidget {
-  const _LockedLesson();
+  const _LockedLesson({required this.onUpgrade});
+
+  final VoidCallback onUpgrade;
 
   @override
   Widget build(BuildContext context) {
@@ -178,7 +191,7 @@ class _LockedLesson extends StatelessWidget {
         color: const Color(0xFFFFF4DE),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Column(
+      child: Column(
         children: [
           Icon(
             Icons.workspace_premium_outlined,
@@ -191,6 +204,12 @@ class _LockedLesson extends StatelessWidget {
           Text(
             'Upgrade to VIP to unlock this lesson.',
             textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: onUpgrade,
+            icon: Icon(Icons.workspace_premium),
+            label: const Text('Upgrade to VIP'),
           ),
         ],
       ),

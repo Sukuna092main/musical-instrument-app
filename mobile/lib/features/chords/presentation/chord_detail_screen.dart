@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/network/api_client.dart';
 import '../data/chord_api.dart';
+import '../../../shared/widgets/audio_player_bar.dart';
 
 class ChordDetailScreen extends StatefulWidget {
   const ChordDetailScreen({super.key, required this.chordId});
@@ -94,6 +95,11 @@ class _ChordDetailScreenState extends State<ChordDetailScreen> {
                 const _LockedChord()
               else ...[
                 _ChordDiagram(url: chord.diagramUrl),
+                if (chord.audioUrl != null &&
+                    chord.audioUrl!.trim().isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  AudioPlayerBar(audioUrl: chord.audioUrl!),
+                ],
                 if (chord.description != null &&
                     chord.description!.trim().isNotEmpty) ...[
                   const SizedBox(height: 24),

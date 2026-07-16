@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import '../../../core/network/api_client.dart';
+import '../../auth/data/auth_api.dart';
 
 class ProfileApi {
   ProfileApi(this._client);
@@ -25,5 +26,18 @@ class ProfileApi {
     final data = Map<String, dynamic>.from(response['data'] as Map);
 
     return data['avatarUrl'] as String;
+  }
+
+  /// PATCH /api/users/me — cập nhật full_name/phone, trả user mới.
+  Future<AuthUser> updateProfile({String? fullName, String? phone}) async {
+    final response = Map<String, dynamic>.from(
+      await _client.patch('/api/users/me', {
+            if (fullName != null) 'fullName': fullName,
+            if (phone != null) 'phone': phone,
+          })
+          as Map,
+    );
+    final data = Map<String, dynamic>.from(response['data'] as Map);
+    return AuthUser.fromJson(Map<String, dynamic>.from(data['user'] as Map));
   }
 }

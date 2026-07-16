@@ -9,6 +9,8 @@ import '../../auth/presentation/auth_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../goals/presentation/goals_screen.dart';
 import '../../lessons/presentation/lesson_screen.dart';
+import '../../chat/presentation/chat_screen.dart';
+import '../../instruments/presentation/instruments_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.auth});
@@ -22,12 +24,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late final PracticeApi _practiceApi;
   late Future<PracticeDashboard> _dashboardFuture;
+  late AuthUser _currentUser;
 
   @override
   void initState() {
     super.initState();
     _practiceApi = PracticeApi(ApiClient());
     _dashboardFuture = _practiceApi.getDashboard();
+    _currentUser = widget.auth.user;
   }
 
   Future<void> _refresh() async {
@@ -72,6 +76,16 @@ class _HomeScreenState extends State<HomeScreen> {
     await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const LessonsScreen()));
+
+    if (mounted) {
+      await _refresh();
+    }
+  }
+
+  Future<void> _openInstruments() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const InstrumentsScreen()));
 
     if (mounted) {
       await _refresh();
@@ -128,6 +142,15 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: const Color(0xFFF7F7F2),
         actions: [
           IconButton(
+            tooltip: 'Support',
+            icon: const Icon(Icons.support_agent),
+            onPressed: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ChatScreen()));
+            },
+          ),
+          IconButton(
             tooltip: 'Log out',
             icon: const Icon(Icons.logout),
             onPressed: _logout,
@@ -135,12 +158,21 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             tooltip: 'Profile',
             icon: const Icon(Icons.account_circle_outlined),
-            onPressed: () {
-              Navigator.of(context).push(
+            onPressed: () async {
+              await Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => ProfileScreen(user: widget.auth.user),
+                  builder: (_) => ProfileScreen(user: _currentUser),
                 ),
               );
+              // Khi quay về Home, re-fetch user mới nhất từ server
+              // để cập nhật tên/avatar/phone vừa sửa.
+              if (!mounted) return;
+              try {
+                final fresh = await AuthApi().getMe();
+                if (mounted) setState(() => _currentUser = fresh);
+              } catch (_) {
+                // Token hết hạn hoặc lỗi mạng — giữ nguyên user cũ.
+              }
             },
           ),
         ],
@@ -181,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 Text(
-                  'Hi, ${widget.auth.user.fullName}',
+                  'Hi, ${_currentUser.fullName}',
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 4),
@@ -224,6 +256,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: 'Browse lessons, chords, and scales',
                   onTap: () {
                     _openLessons();
+                  },
+                ),
+                _ActionCard(
+                  icon: Icons.music_note_outlined,
+                  title: 'My instruments',
+                  subtitle: 'Manage instruments you are practicing',
+                  onTap: () {
+                    _openInstruments();
                   },
                 ),
               ],
