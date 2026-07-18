@@ -91,8 +91,8 @@ class ChordsApi {
   }) async {
     final query = <String, String>{
       'limit': '50',
-      if (instrumentId != null) 'instrumentId': instrumentId,
-      if (category != null) 'category': category,
+      'instrumentId': ?instrumentId,
+      'category': ?category,
     };
 
     final queryString = Uri(queryParameters: query).query;

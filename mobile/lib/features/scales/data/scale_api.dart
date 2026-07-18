@@ -91,8 +91,8 @@ class ScalesApi {
   }) async {
     final query = <String, String>{
       'limit': '50',
-      if (instrumentId != null) 'instrumentId': instrumentId,
-      if (scaleType != null) 'scaleType': scaleType,
+      'instrumentId': ?instrumentId,
+      'scaleType': ?scaleType,
     };
 
     final queryString = Uri(queryParameters: query).query;

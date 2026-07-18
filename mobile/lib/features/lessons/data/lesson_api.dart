@@ -139,7 +139,7 @@ class LessonsApi {
   }) async {
     final query = <String, String>{
       'limit': '50',
-      if (categoryId != null) 'categoryId': categoryId,
+      'categoryId': ?categoryId,
       if (isVip != null) 'isVip': isVip.toString(),
     };
 

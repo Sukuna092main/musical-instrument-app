@@ -93,11 +93,17 @@ class _VipScreenState extends State<VipScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
       appBar: AppBar(
         title: const Text('VIP'),
-        backgroundColor: const Color(0xFFF7F7F2),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        foregroundColor: scheme.onSurface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         actions: [
           IconButton(
             tooltip: 'Refresh',
@@ -234,9 +240,12 @@ class _ActiveSubscriptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Card(
       elevation: 0,
-      color: const Color(0xFF163B32),
+      color: scheme.primaryContainer,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -245,16 +254,16 @@ class _ActiveSubscriptionCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.workspace_premium,
-                  color: Color(0xFFFFD700),
+                  color: Color.fromARGB(255, 145, 123, 1),
                   size: 28,
                 ),
                 const SizedBox(width: 10),
                 Text(
                   'VIP Active',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
+                    color: scheme.onPrimaryContainer,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -263,13 +272,13 @@ class _ActiveSubscriptionCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               subscription.planName,
-              style: const TextStyle(color: Colors.white70, fontSize: 15),
+              style: TextStyle(color: scheme.onPrimaryContainer, fontSize: 15),
             ),
             const SizedBox(height: 4),
             Text(
               '${subscription.daysRemaining} days remaining',
-              style: const TextStyle(
-                color: Color(0xFFFFD700),
+              style: TextStyle(
+                color: scheme.onPrimaryContainer,
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
               ),
@@ -277,7 +286,7 @@ class _ActiveSubscriptionCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Expires ${_formatDate(subscription.expiredAt)}',
-              style: const TextStyle(color: Colors.white54, fontSize: 13),
+              style: TextStyle(color: scheme.onPrimaryContainer, fontSize: 13),
             ),
           ],
         ),
@@ -293,28 +302,37 @@ class _NoSubscriptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Card(
       elevation: 0,
-      color: const Color(0xFFFFF4DE),
+      color: scheme.tertiaryContainer,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      child: const Padding(
+      child: Padding(
         padding: EdgeInsets.all(20),
         child: Column(
           children: [
             Icon(
               Icons.workspace_premium_outlined,
               size: 42,
-              color: Color(0xFFB7791F),
+              color: scheme.onTertiaryContainer,
             ),
             SizedBox(height: 12),
             Text(
               'You don\'t have VIP yet',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: scheme.onTertiaryContainer,
+                fontWeight: FontWeight.w700,
+              ),
             ),
             SizedBox(height: 4),
             Text(
               'Upgrade to unlock premium lessons, chords, and scales.',
               textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onTertiaryContainer,
+              ),
             ),
           ],
         ),
@@ -340,9 +358,11 @@ class _PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Card(
       elevation: 0,
-      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -354,7 +374,7 @@ class _PlanCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     plan.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -366,13 +386,13 @@ class _PlanCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1F7A5A),
+                      color: scheme.primary,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Current',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: scheme.onPrimary,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -385,20 +405,23 @@ class _PlanCard extends StatelessWidget {
               _formatPrice(plan.price, plan.currency),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w800,
-                color: const Color(0xFF1F7A5A),
+                color: scheme.primary,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               '${plan.durationDays} days',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.black54),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
             ),
             if (plan.description != null &&
                 plan.description!.trim().isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(plan.description!, style: const TextStyle(height: 1.4)),
+              Text(
+                plan.description!,
+                style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+              ),
             ],
             if (plan.features.isNotEmpty) ...[
               const SizedBox(height: 12),
@@ -407,11 +430,7 @@ class _PlanCard extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Row(
                     children: [
-                      const Icon(
-                        Icons.check_circle,
-                        size: 18,
-                        color: Color(0xFF1F7A5A),
-                      ),
+                      Icon(Icons.check_circle, size: 18, color: scheme.primary),
                       const SizedBox(width: 8),
                       Expanded(child: Text(feature)),
                     ],
@@ -424,17 +443,13 @@ class _PlanCard extends StatelessWidget {
               width: double.infinity,
               child: FilledButton(
                 onPressed: isCurrentPlan || isPurchasing ? null : onPurchase,
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF1F7A5A),
-                  disabledBackgroundColor: const Color(0xFFCCDDCC),
-                ),
                 child: isPurchasing
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 18,
                         width: 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: scheme.onPrimary,
                         ),
                       )
                     : Text(isCurrentPlan ? 'Active' : 'Subscribe'),
@@ -456,18 +471,17 @@ class _PaymentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Card(
       elevation: 0,
-      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: ListTile(
         leading: Icon(
           payment.status == 'success'
               ? Icons.check_circle_outline
               : Icons.error_outline,
-          color: payment.status == 'success'
-              ? const Color(0xFF1F7A5A)
-              : Colors.red,
+          color: payment.status == 'success' ? scheme.primary : scheme.error,
         ),
         title: Text(payment.planName),
         subtitle: Text(_formatDate(payment.createdAt)),

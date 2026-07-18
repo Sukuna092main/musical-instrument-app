@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/l10n/l10n_ext.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../auth/data/auth_api.dart';
-import '../../practice/data/practice_api.dart';
-import '../../practice/presentation/practice_timer_screen.dart';
-import '../../practice/presentation/practice_history_screen.dart';
 import '../../auth/presentation/auth_screen.dart';
+import '../../practice/data/practice_api.dart';
+import '../../practice/presentation/practice_history_screen.dart';
+import '../../practice/presentation/practice_timer_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../goals/presentation/goals_screen.dart';
 import '../../lessons/presentation/lesson_screen.dart';
@@ -93,23 +95,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _logout() async {
+    final l10n = context.l10n;
     final shouldLogout =
         await showDialog<bool>(
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: const Text('Log out?'),
-              content: const Text(
-                'You will need to sign in again to continue.',
-              ),
+              title: Text(l10n.logOutQuestion),
+              content: Text(l10n.logOutConfirm),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Log out'),
+                  child: Text(l10n.logOut),
                 ),
               ],
             );
@@ -135,14 +136,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
       appBar: AppBar(
-        title: const Text('Practice Dashboard'),
-        backgroundColor: const Color(0xFFF7F7F2),
+        title: Text(l10n.practiceDashboard),
         actions: [
           IconButton(
-            tooltip: 'Support',
+            tooltip: l10n.support,
             icon: const Icon(Icons.support_agent),
             onPressed: () {
               Navigator.of(
@@ -151,12 +152,12 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           IconButton(
-            tooltip: 'Log out',
+            tooltip: l10n.logOut,
             icon: const Icon(Icons.logout),
             onPressed: _logout,
           ),
           IconButton(
-            tooltip: 'Profile',
+            tooltip: l10n.profile,
             icon: const Icon(Icons.account_circle_outlined),
             onPressed: () async {
               await Navigator.of(context).push(
@@ -164,8 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (_) => ProfileScreen(user: _currentUser),
                 ),
               );
-              // Khi quay về Home, re-fetch user mới nhất từ server
-              // để cập nhật tên/avatar/phone vừa sửa.
+              // Khi quay về Home, re-fetch user mới nhất từ server.
               if (!mounted) return;
               try {
                 final fresh = await AuthApi().getMe();
@@ -191,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   Text(
-                    'Could not load dashboard',
+                    l10n.couldNotLoad(l10n.practiceDashboard.toLowerCase()),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
@@ -199,10 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     snapshot.error.toString().replaceFirst('Exception: ', ''),
                   ),
                   const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: _refresh,
-                    child: const Text('Try again'),
-                  ),
+                  FilledButton(onPressed: _refresh, child: Text(l10n.tryAgain)),
                 ],
               );
             }
@@ -213,12 +210,12 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 Text(
-                  'Hi, ${_currentUser.fullName}',
+                  l10n.hi(_currentUser.fullName),
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Ready for today\'s practice?',
+                  l10n.readyForToday,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 20),
@@ -228,43 +225,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 16),
                 _ActionCard(
                   icon: Icons.timer_outlined,
-                  title: 'Practice timer',
-                  subtitle: 'Start a focused session with notes and mood',
-                  onTap: () {
-                    _openPracticeTimer();
-                  },
+                  title: l10n.practiceTimer,
+                  subtitle: l10n.practiceTimerSubtitle,
+                  onTap: _openPracticeTimer,
                 ),
                 _ActionCard(
                   icon: Icons.history_outlined,
-                  title: 'Practice history',
-                  subtitle: 'Review completed sessions, notes, and mood',
-                  onTap: () {
-                    _openPracticeHistory();
-                  },
+                  title: l10n.practiceHistory,
+                  subtitle: l10n.practiceHistorySubtitle,
+                  onTap: _openPracticeHistory,
                 ),
                 _ActionCard(
                   icon: Icons.flag_outlined,
-                  title: 'Goals',
-                  subtitle: 'Track daily minutes, weekly days, and streaks',
-                  onTap: () {
-                    _openGoals();
-                  },
+                  title: l10n.goals,
+                  subtitle: l10n.goalsSubtitle,
+                  onTap: _openGoals,
                 ),
                 _ActionCard(
                   icon: Icons.menu_book_outlined,
-                  title: 'Learn',
-                  subtitle: 'Browse lessons, chords, and scales',
-                  onTap: () {
-                    _openLessons();
-                  },
+                  title: l10n.learn,
+                  subtitle: l10n.learnSubtitle,
+                  onTap: _openLessons,
                 ),
                 _ActionCard(
                   icon: Icons.music_note_outlined,
-                  title: 'My instruments',
-                  subtitle: 'Manage instruments you are practicing',
-                  onTap: () {
-                    _openInstruments();
-                  },
+                  title: l10n.myInstruments,
+                  subtitle: l10n.myInstrumentsSubtitle,
+                  onTap: _openInstruments,
                 ),
               ],
             );
@@ -282,6 +269,7 @@ class _StatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final stats = dashboard.stats;
     final streak = dashboard.streak;
 
@@ -294,27 +282,27 @@ class _StatsGrid extends StatelessWidget {
       childAspectRatio: 1.45,
       children: [
         _StatTile(
-          label: 'Today',
+          label: l10n.today,
           value: '${stats.todayMinutes}m',
-          helper: '${stats.todaySessions} sessions',
+          helper: l10n.sessions(stats.todaySessions),
           icon: Icons.today_outlined,
         ),
         _StatTile(
-          label: 'This week',
+          label: l10n.thisWeek,
           value: '${stats.weekMinutes}m',
-          helper: '${stats.weekSessions} sessions',
+          helper: l10n.sessions(stats.weekSessions),
           icon: Icons.calendar_view_week_outlined,
         ),
         _StatTile(
-          label: 'Streak',
-          value: '${streak.currentStreak} days',
-          helper: 'Best ${streak.longestStreak} days',
+          label: l10n.streak,
+          value: '${streak.currentStreak}',
+          helper: l10n.bestDays(streak.longestStreak),
           icon: Icons.local_fire_department_outlined,
         ),
         _StatTile(
-          label: 'All time',
+          label: l10n.allTime,
           value: '${stats.allTimeSessions}',
-          helper: 'completed sessions',
+          helper: l10n.completedSessions(stats.allTimeSessions),
           icon: Icons.history_outlined,
         ),
       ],
@@ -339,14 +327,13 @@ class _StatTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: const Color(0xFF1F7A5A)),
+            Icon(icon, color: AppColors.accent),
             const Spacer(),
             Text(
               value,
@@ -357,9 +344,9 @@ class _StatTile extends StatelessWidget {
             Text(label),
             Text(
               helper,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).hintColor,
+              ),
             ),
           ],
         ),
@@ -375,29 +362,36 @@ class _ActiveSessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final hasSession = session != null;
+    final scheme = Theme.of(context).colorScheme;
+
+    final backgroundColor = hasSession
+        ? scheme.primary
+        : scheme.primaryContainer;
+
+    final foregroundColor = hasSession
+        ? scheme.onPrimary
+        : scheme.onPrimaryContainer;
 
     return Card(
       elevation: 0,
-      color: hasSession ? const Color(0xFF163B32) : const Color(0xFFE8EFE7),
+      color: backgroundColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: ListTile(
         leading: Icon(
           hasSession ? Icons.play_circle_outline : Icons.music_note_outlined,
-          color: hasSession ? Colors.white : const Color(0xFF1F7A5A),
+          color: foregroundColor,
         ),
         title: Text(
-          hasSession ? 'Practice in progress' : 'No active practice',
-          style: TextStyle(
-            color: hasSession ? Colors.white : Colors.black,
-            fontWeight: FontWeight.w700,
-          ),
+          hasSession ? l10n.practiceInProgress : l10n.noActivePractice,
+          style: TextStyle(color: foregroundColor, fontWeight: FontWeight.w700),
         ),
         subtitle: Text(
           hasSession
-              ? '${session!.instrumentName} started at ${_formatTime(session!.startedAt)}'
-              : 'Start a timer when you are ready',
-          style: TextStyle(color: hasSession ? Colors.white70 : Colors.black54),
+              ? '${session!.instrumentName} • ${_formatTime(session!.startedAt)}'
+              : l10n.startWhenReady,
+          style: TextStyle(color: foregroundColor.withValues(alpha: 0.8)),
         ),
       ),
     );
@@ -431,7 +425,7 @@ class _ActionCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: ListTile(
-        leading: Icon(icon, color: const Color(0xFF1F7A5A)),
+        leading: Icon(icon, color: AppColors.accent),
         title: Text(title),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),

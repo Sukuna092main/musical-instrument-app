@@ -37,11 +37,17 @@ class _ScaleDetailScreenState extends State<ScaleDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
       appBar: AppBar(
         title: const Text('Scale'),
-        backgroundColor: const Color(0xFFF7F7F2),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        foregroundColor: scheme.onSurface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       body: FutureBuilder<ScaleDetail>(
         future: _scaleFuture,
@@ -82,16 +88,16 @@ class _ScaleDetailScreenState extends State<ScaleDetailScreen> {
                       scale.canAccess
                           ? Icons.workspace_premium_outlined
                           : Icons.lock_outline,
-                      color: const Color(0xFFB7791F),
+                      color: scheme.tertiary,
                     ),
                 ],
               ),
               const SizedBox(height: 8),
               Text(
                 _metadata(scale),
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.black54),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               if (!scale.canAccess)
@@ -156,11 +162,13 @@ class _ScaleDiagram extends StatelessWidget {
       return const _DiagramPlaceholder();
     }
 
+    final scheme = Theme.of(context).colorScheme;
+
     return AspectRatio(
       aspectRatio: 4 / 3,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: scheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(8),
         ),
         child: ClipRRect(
@@ -181,18 +189,20 @@ class _DiagramPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return AspectRatio(
       aspectRatio: 4 / 3,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: const Color(0xFFE8EFE7),
+          color: scheme.primaryContainer,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Center(
+        child: Center(
           child: Icon(
             Icons.music_note_outlined,
             size: 56,
-            color: Color(0xFF1F7A5A),
+            color: scheme.onPrimaryContainer,
           ),
         ),
       ),
@@ -207,10 +217,13 @@ class _LockedScale extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF4DE),
+        color: scheme.tertiaryContainer,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -218,14 +231,23 @@ class _LockedScale extends StatelessWidget {
           Icon(
             Icons.workspace_premium_outlined,
             size: 42,
-            color: Color(0xFFB7791F),
+            color: scheme.onTertiaryContainer,
           ),
           SizedBox(height: 12),
-          Text('VIP scale', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text(
+            'VIP scale',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: scheme.onTertiaryContainer,
+            ),
+          ),
           SizedBox(height: 4),
           Text(
             'Upgrade to VIP to unlock this scale diagram.',
             textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: scheme.onTertiaryContainer,
+            ),
           ),
           const SizedBox(height: 16),
           FilledButton.icon(

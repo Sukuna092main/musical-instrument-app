@@ -39,11 +39,12 @@ class _ChordsScreenState extends State<ChordsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
       appBar: AppBar(
         title: const Text('Chords'),
-        backgroundColor: const Color(0xFFF7F7F2),
         actions: [
           IconButton(
             tooltip: 'Refresh chords',
@@ -74,7 +75,7 @@ class _ChordsScreenState extends State<ChordsScreen> {
                 children: [
                   Text(
                     'Could not load chords',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: theme.textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -107,14 +108,14 @@ class _ChordsScreenState extends State<ChordsScreen> {
               children: [
                 Text(
                   'Chord library',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Find shapes and theory for the chords you are learning.',
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: theme.textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -126,9 +127,7 @@ class _ChordsScreenState extends State<ChordsScreen> {
                         label: const Text('All'),
                         selected: _selectedCategory == null,
                         onSelected: (_) {
-                          setState(() {
-                            _selectedCategory = null;
-                          });
+                          setState(() => _selectedCategory = null);
                         },
                       ),
                       const SizedBox(width: 8),
@@ -139,9 +138,7 @@ class _ChordsScreenState extends State<ChordsScreen> {
                             label: Text(_capitalize(category)),
                             selected: _selectedCategory == category,
                             onSelected: (_) {
-                              setState(() {
-                                _selectedCategory = category;
-                              });
+                              setState(() => _selectedCategory = category);
                             },
                           ),
                         ),
@@ -151,17 +148,17 @@ class _ChordsScreenState extends State<ChordsScreen> {
                 ),
                 const SizedBox(height: 20),
                 if (filteredChords.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 64),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 64),
                     child: Column(
                       children: [
                         Icon(
                           Icons.music_note_outlined,
                           size: 56,
-                          color: Color(0xFF1F7A5A),
+                          color: scheme.primary,
                         ),
-                        SizedBox(height: 12),
-                        Text('No chords available yet'),
+                        const SizedBox(height: 12),
+                        const Text('No chords available yet'),
                       ],
                     ),
                   )
@@ -197,7 +194,10 @@ class _ChordCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final title = chord.symbol ?? chord.name ?? 'Chord';
+
     final metadata = [
       if (chord.instrumentName != null) chord.instrumentName!,
       _capitalize(chord.category),
@@ -206,7 +206,6 @@ class _ChordCard extends StatelessWidget {
 
     return Card(
       elevation: 0,
-      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -220,14 +219,14 @@ class _ChordCard extends StatelessWidget {
                 height: 44,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8EFE7),
+                  color: scheme.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1F7A5A),
+                    color: scheme.onPrimaryContainer,
                   ),
                 ),
               ),
@@ -238,26 +237,26 @@ class _ChordCard extends StatelessWidget {
                   children: [
                     Text(
                       chord.name ?? title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       metadata.join(' | '),
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
               ),
               if (chord.isVip)
-                const Tooltip(
+                Tooltip(
                   message: 'VIP chord',
                   child: Icon(
                     Icons.workspace_premium_outlined,
-                    color: Color(0xFFB7791F),
+                    color: scheme.tertiary,
                   ),
                 )
               else

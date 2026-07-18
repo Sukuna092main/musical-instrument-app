@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/l10n/l10n_ext.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/theme/app_colors.dart';
 import '../data/chat_api.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -20,7 +22,6 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isLoading = true;
   bool _isSending = false;
   String? _loadError;
-  bool _isVi = false; // mặc định English để đồng bộ với phần còn lại của app
 
   @override
   void initState() {
@@ -36,8 +37,6 @@ class _ChatScreenState extends State<ChatScreen> {
     _inputFocus.dispose();
     super.dispose();
   }
-
-  String t(String en, String vi) => _isVi ? vi : en;
 
   Future<void> _loadHistory() async {
     setState(() {
@@ -91,11 +90,11 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         final index = _messages.indexOf(local);
         if (index >= 0) {
-          _messages[index] = result[0]; // thay bằng user message thật
+          _messages[index] = result[0];
         } else {
           _messages.add(result[0]);
         }
-        _messages.add(result[1]); // bot reply
+        _messages.add(result[1]);
         _isSending = false;
       });
       _scrollToBottom();
@@ -111,7 +110,7 @@ class _ChatScreenState extends State<ChatScreen> {
           content: Text(error.toString().replaceFirst('Exception: ', '')),
         ),
       );
-      _inputController.text = text; // khôi phục lại text chưa gửi
+      _inputController.text = text;
     }
   }
 
@@ -128,19 +127,14 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
       appBar: AppBar(
-        title: Text(t('Support', 'Hỗ trợ')),
-        backgroundColor: const Color(0xFFF7F7F2),
+        title: Text(l10n.support),
         actions: [
           IconButton(
-            tooltip: _isVi ? 'English' : 'Tiếng Việt',
-            icon: const Icon(Icons.translate),
-            onPressed: () => setState(() => _isVi = !_isVi),
-          ),
-          IconButton(
-            tooltip: t('Refresh', 'Tải lại'),
+            tooltip: l10n.retry,
             icon: const Icon(Icons.refresh),
             onPressed: _loadHistory,
           ),
@@ -157,6 +151,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildBody() {
+    final l10n = context.l10n;
+
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -166,7 +162,7 @@ class _ChatScreenState extends State<ChatScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            t('Could not load messages', 'Không tải được tin nhắn'),
+            l10n.couldNotLoadMessages,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
@@ -174,7 +170,7 @@ class _ChatScreenState extends State<ChatScreen> {
           const SizedBox(height: 16),
           FilledButton(
             onPressed: _loadHistory,
-            child: Text(t('Try again', 'Thử lại')),
+            child: Text(l10n.tryAgain),
           ),
         ],
       );
@@ -192,28 +188,26 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildEmpty() {
+    final l10n = context.l10n;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.support_agent, size: 56, color: Color(0xFF1F7A5A)),
+            const Icon(Icons.support_agent, size: 56, color: AppColors.accent),
             const SizedBox(height: 12),
             Text(
-              t('How can we help?', 'Chúng tôi có thể giúp gì?'),
+              l10n.howCanWeHelp,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
             Text(
-              t(
-                'Ask about practice, goals, lessons, VIP or payments.',
-                'Hỏi về luyện tập, mục tiêu, bài học, VIP hoặc thanh toán.',
-              ),
+              l10n.askAbout,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.black54),
+              style: TextStyle(color: Theme.of(context).hintColor),
             ),
           ],
         ),
@@ -222,10 +216,14 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildSuggestions() {
-    // Các từ khóa này backend chatbot đều nhận diện được (bỏ dấu + vi/en).
-    final labels = _isVi
-        ? ['VIP', 'Luyện tập', 'Mục tiêu', 'Bài học']
-        : ['VIP', 'Practice', 'Goals', 'Lessons'];
+    final l10n = context.l10n;
+    // Backend chatbot nhận diện cả vi/en (bỏ dấu + keyword match).
+    final labels = [
+      'VIP',
+      l10n.practice,
+      l10n.goals,
+      l10n.learn,
+    ];
 
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
@@ -236,9 +234,9 @@ class _ChatScreenState extends State<ChatScreen> {
             .map(
               (label) => ActionChip(
                 label: Text(label),
-                backgroundColor: Colors.white,
-                side: const BorderSide(color: Color(0xFF1F7A5A)),
-                labelStyle: const TextStyle(color: Color(0xFF1F7A5A)),
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                side: const BorderSide(color: AppColors.accent),
+                labelStyle: const TextStyle(color: AppColors.accent),
                 onPressed: _isSending ? null : () => _sendMessage(label),
               ),
             )
@@ -248,13 +246,16 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildInput() {
+    final l10n = context.l10n;
     return SafeArea(
       top: false,
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Colors.black12)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border(
+            top: BorderSide(color: Theme.of(context).dividerColor),
+          ),
         ),
         child: Row(
           children: [
@@ -268,13 +269,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 textCapitalization: TextCapitalization.sentences,
                 onSubmitted: (_) => _sendMessage(),
                 decoration: InputDecoration(
-                  hintText: t('Type a message…', 'Nhập tin nhắn…'),
+                  hintText: l10n.typeMessage,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: const Color(0xFFF1F3F1),
+                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 10,
@@ -291,10 +292,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       width: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFF1F7A5A),
+                        color: AppColors.accent,
                       ),
                     )
-                  : const Icon(Icons.send, color: Color(0xFF1F7A5A)),
+                  : const Icon(Icons.send, color: AppColors.accent),
             ),
           ],
         ),
@@ -311,6 +312,8 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.isUser;
+    final scheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -322,7 +325,7 @@ class _MessageBubble extends StatelessWidget {
           if (!isUser) ...[
             const CircleAvatar(
               radius: 16,
-              backgroundColor: Color(0xFF163B32),
+              backgroundColor: AppColors.accentDark,
               child: Icon(Icons.support_agent, color: Colors.white, size: 18),
             ),
             const SizedBox(width: 8),
@@ -342,19 +345,23 @@ class _MessageBubble extends StatelessWidget {
                     maxWidth: MediaQuery.of(context).size.width * 0.72,
                   ),
                   decoration: BoxDecoration(
-                    color: isUser ? const Color(0xFF1F7A5A) : Colors.white,
+                    color: isUser ? AppColors.accent : scheme.surface,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(16),
                       topRight: const Radius.circular(16),
                       bottomLeft: Radius.circular(isUser ? 16 : 4),
                       bottomRight: Radius.circular(isUser ? 4 : 16),
                     ),
-                    border: isUser ? null : Border.all(color: Colors.black12),
+                    border: isUser
+                        ? null
+                        : Border.all(color: scheme.outlineVariant),
                   ),
                   child: Text(
                     message.message,
                     style: TextStyle(
-                      color: isUser ? Colors.white : Colors.black87,
+                      color: isUser
+                          ? Colors.white
+                          : scheme.onSurface,
                       height: 1.35,
                     ),
                   ),
@@ -362,7 +369,10 @@ class _MessageBubble extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   _formatTime(message.createdAt),
-                  style: const TextStyle(color: Colors.black38, fontSize: 11),
+                  style: TextStyle(
+                    color: Theme.of(context).hintColor,
+                    fontSize: 11,
+                  ),
                 ),
               ],
             ),

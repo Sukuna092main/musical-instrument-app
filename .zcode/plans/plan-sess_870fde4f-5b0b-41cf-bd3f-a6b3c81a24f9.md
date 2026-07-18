@@ -1,242 +1,302 @@
-# Plan: Edit Profile (name/phone) — Backend PATCH + Bottom Sheet + Refresh
+# Plan: Settings Screen (Dark Mode + Ngôn ngữ vi/en toàn app)
 
-## Bối cảnh
-Profile screen hiện read-only (chỉ avatar đổi được). `AuthUser` immutable, được home_screen giữ trong `widget.auth.user` → sau edit cần trả object mới về Home. Backend `/api/users/me` chưa có PATCH.
+## Quyết định thiết kế
+- **State**: `ChangeNotifier` (zero new dep, có sẵn trong `flutter/foundation.dart`).
+- **Dark mode**: migrate 5 screen chính sang `Theme.of(context)` tokens; screen phụ giữ light (fallback).
+- **i18n**: `flutter_localizations` + `intl` + gen-l10n với `.arb` files. Migrate cùng 5 screen chính; screen phụ giữ English.
+- **Entry**: tile "Settings" trong ProfileScreen → push `SettingsScreen`.
+- **Persistence**: SharedPreferences (keys `themeMode`, `locale`).
 
-Quyết định: **bottom sheet edit** + **refresh toàn user về Home** (cũng fix bug avatar hiện tại).
+## Phần A — Infrastructure (core)
 
-## Phạm vi
+### A1. `mobile/pubspec.yaml` — thêm deps + generate flag
+```yaml
+dependencies:
+  ...
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
-### A — Backend
+flutter:
+  uses-material-design: true
+  generate: true          # ← bật gen-l10n
+```
 
-#### A1. `backend/src/modules/users/user.service.ts`
-1. **Thêm `phone` vào `getCurrentUser` select** (hiện thiếu): thêm `phone: true` vào select + `phone: user.phone` vào return.
-2. **Thêm hàm `updateMyProfile(userId, input)`**:
-   - `findUnique` → 404 nếu thiếu (dùng `Object.assign(new Error(...), { statusCode: 404 })` — pattern users module).
-   - Validate: nếu `fullName` provided → trim, kiểm tra rỗng + ≤ 100 ký tự (DB VarChar(100)), sai → throw với `statusCode: 400`. Nếu `phone` provided → trim, kiểm tra ≤ 30 ký tự (DB VarChar(30)), sai → throw 400. (Email KHÔNG cho edit.)
-   - `prisma.users.update` với spread điều kiện (`...(input.fullName !== undefined && { full_name: ... })`, `...(input.phone !== undefined && { phone: ... })`), luôn set `updated_at: new Date()`, `select` trả snake_case gồm `{ id, full_name, email, avatar_url, phone, role, status }`.
-   - Return object snake_case.
+### A2. TẠO `mobile/l10n.yaml`
+```yaml
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+synthetic-package: false
+output-dir: lib/l10n/generated
+```
 
-```ts
-type UpdateProfileInput = { fullName?: string; phone?: string };
+### A3. TẠO 2 file ARB
+- `mobile/lib/l10n/app_en.arb` — template (tất cả key).
+- `mobile/lib/l10n/app_vi.arb` — bản dịch tiếng Việt.
 
-export async function updateMyProfile(userId: string, input: UpdateProfileInput) {
-  const current = await prisma.users.findUnique({
-    where: { id: userId },
-    select: { id: true },
-  });
+Keys ban đầu (extract từ 5 screen chính + settings): `appName`, `practiceDashboard`, `hi`, `readyForToday`, `today`, `thisWeek`, `streak`, `allTime`, `practiceTimer`, `practiceHistory`, `goals`, `learn`, `myInstruments`, `logOut`, `logOutQuestion`, `logOutConfirm`, `cancel`, `support`, `profile`, `account`, `fullName`, `phone`, `email`, `accountType`, `subscription`, `vipMembership`, `viewPlans`, `save`, `settings`, `appearance`, `darkMode`, `language`, `english`, `vietnamese`, `about`, `version`, ... (extract đầy đủ khi implement).
 
-  if (!current) {
-    const error = Object.assign(new Error("User not found."), {
-      statusCode: 404,
-    });
-    throw error;
-  }
-
-  const data: { full_name?: string; phone?: string; updated_at: Date } = {
-    updated_at: new Date(),
-  };
-
-  if (input.fullName !== undefined) {
-    const trimmed = input.fullName.trim();
-    if (trimmed.length === 0 || trimmed.length > 100) {
-      const error = Object.assign(
-        new Error("Full name must be 1–100 characters."),
-        { statusCode: 400 },
-      );
-      throw error;
-    }
-    data.full_name = trimmed;
-  }
-
-  if (input.phone !== undefined) {
-    const trimmed = input.phone.trim();
-    if (trimmed.length > 30) {
-      const error = Object.assign(
-        new Error("Phone must be 30 characters or fewer."),
-        { statusCode: 400 },
-      );
-      throw error;
-    }
-    data.phone = trimmed.length === 0 ? null : trimmed; // empty string -> null
-  }
-
-  const updated = await prisma.users.update({
-    where: { id: userId },
-    data,
-    select: {
-      id: true,
-      full_name: true,
-      email: true,
-      avatar_url: true,
-      phone: true,
-      role: true,
-      status: true,
-    },
-  });
-
-  return updated;
+### A4. TẠO `mobile/lib/core/theme/app_colors.dart` — brand colors hằng số
+Brand colors KHÔNG đổi giữa light/dark (xanh lá, vàng, đỏ lỗi). Screens dùng `Theme.of(context).colorScheme.*` cho surface, nhưng brand color dùng hằng:
+```dart
+class AppColors {
+  static const accent = Color(0xFF1F7A5A);        // primary green
+  static const accentDark = Color(0xFF163B32);    // dark green card/badge
+  static const gold = Color(0xFFFFD700);
+  static const goldText = Color(0xFFB7791F);
+  static const error = Color(0xFFB42318);
+  static const lockBg = Color(0xFFFFF4DE);
+  static const offWhite = Color(0xFFF7F7F2);      // fallback cho screen chưa migrate
 }
 ```
 
-#### A2. `backend/src/modules/users/user.controller.ts`
-Thêm `updateMyProfile` handler (validate type ở controller, theo pattern admin):
-```ts
-// PATCH /api/users/me
-// Cập nhật full_name / phone của user hiện tại.
-export const updateMyProfile = asyncHandler(async (req: Request, res: Response) => {
-  const { fullName, phone } = req.body ?? {};
-
-  if (fullName !== undefined && typeof fullName !== "string") {
-    res.status(400).json({ message: "fullName must be a string." });
-    return;
-  }
-
-  if (phone !== undefined && typeof phone !== "string") {
-    res.status(400).json({ message: "phone must be a string." });
-    return;
-  }
-
-  const user = await updateMyProfileService(req.user!.id, { fullName, phone });
-  res.status(200).json({ message: "Profile updated successfully", data: { user } });
-});
-```
-> Import `updateMyProfile as updateMyProfileService` từ service (tránh trùng tên controller). Bọc `{ user }` trong `data` để khớp `getMe`.
-
-#### A3. `backend/src/modules/users/user.routes.ts`
-Thêm route PATCH `/me`:
-```ts
-import { getMe, updateMyProfile, uploadMyAvatar } from "./user.controller";
-...
-userRoutes.get("/me", getMe);
-userRoutes.patch("/me", updateMyProfile);   // ← thêm
-userRoutes.post("/me/avatar", avatarUpload.single("avatar"), uploadMyAvatar);
-```
-
-#### A4. Build
-`cd backend && npm run build`.
-
-### B — Mobile
-
-#### B1. `mobile/lib/features/auth/data/auth_api.dart` — thêm field `phone`
-`AuthUser` hiện thiếu `phone`. Thêm field + fromJson mapping:
+### A5. TẠO `mobile/lib/core/theme/app_theme.dart` — ThemeData builders
 ```dart
-class AuthUser {
-  AuthUser({
-    required this.id,
-    required this.fullName,
-    required this.email,
-    required this.avatarUrl,
-    required this.phone,        // ← thêm
-    required this.role,
-    required this.status,
-  });
+import 'package:flutter/material.dart';
 
-  final String id;
-  final String fullName;
-  final String email;
-  final String? avatarUrl;
-  final String? phone;          // ← thêm
-  final String role;
-  final String status;
+class AppTheme {
+  static ThemeData get light => ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: AppColors.accent,
+      brightness: Brightness.light,
+    ),
+    scaffoldBackgroundColor: AppColors.offWhite,
+    cardTheme: const CardThemeData(color: Colors.white),
+  );
 
-  factory AuthUser.fromJson(Map<String, dynamic> json) {
-    return AuthUser(
-      id: json['id'] as String,
-      fullName: json['full_name'] as String,
-      email: json['email'] as String,
-      avatarUrl: json['avatar_url'] as String?,
-      phone: json['phone'] as String?,   // ← thêm
-      role: json['role'] as String,
-      status: json['status'] as String,
+  static ThemeData get dark => ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: AppColors.accent,
+      brightness: Brightness.dark,
+    ),
+  );
+}
+```
+
+### A6. TẠO `mobile/lib/core/settings/app_settings.dart` — ChangeNotifier
+```dart
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class AppSettings extends ChangeNotifier {
+  static const _themeKey = 'themeMode';
+  static const _localeKey = 'locale';
+
+  ThemeMode _themeMode = ThemeMode.system;
+  Locale _locale = const Locale('en');
+
+  ThemeMode get themeMode => _themeMode;
+  Locale get locale => _locale;
+  bool get isDarkPreferred => _themeMode == ThemeMode.dark;
+
+  Future<void> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final themeName = prefs.getString(_themeKey);
+    if (themeName == 'dark') _themeMode = ThemeMode.dark;
+    else if (themeName == 'light') _themeMode = ThemeMode.light;
+    else _themeMode = ThemeMode.system;
+
+    final lang = prefs.getString(_localeKey);
+    if (lang == 'vi') _locale = const Locale('vi');
+    else _locale = const Locale('en');
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    _themeMode = mode;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themeKey, mode.name);
+  }
+
+  Future<void> setLocale(Locale locale) async {
+    _locale = locale;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_localeKey, locale.languageCode);
+  }
+}
+```
+
+### A7. TẠO `mobile/lib/core/l10n/l10n_ext.dart` — extension tiện lợi
+```dart
+import 'package:flutter/material.dart';
+import '../../l10n/generated/app_localizations.dart';
+
+extension L10nContext on BuildContext {
+  AppLocalizations get l10n => AppLocalizations.of(this)!;
+}
+```
+
+### A8. SỬA `mobile/lib/main.dart` — load settings trước runApp
+```dart
+import 'package:flutter/material.dart';
+import 'app.dart';
+import 'core/settings/app_settings.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final settings = AppSettings();
+  await settings.load();
+  runApp(MusicPracticeApp(settings: settings));
+}
+```
+
+### A9. SỬA `mobile/lib/app.dart` — convert sang StatefulWidget + locale/themeMode
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
+import 'core/l10n/l10n_ext.dart';
+import 'core/settings/app_settings.dart';
+import 'core/theme/app_theme.dart';
+import 'features/auth/presentation/splash_screen.dart';
+import 'l10n/generated/app_localizations.dart';
+
+class MusicPracticeApp extends StatefulWidget {
+  const MusicPracticeApp({super.key, required this.settings});
+  final AppSettings settings;
+
+  @override
+  State<MusicPracticeApp> createState() => _MusicPracticeAppState();
+}
+
+class _MusicPracticeAppState extends State<MusicPracticeApp> {
+  @override
+  void initState() {
+    super.initState();
+    widget.settings.addListener(_onChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.settings.removeListener(_onChanged);
+    super.dispose();
+  }
+
+  void _onChanged() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = widget.settings;
+    return MaterialApp(
+      title: 'Music Practice Tracker',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: settings.themeMode,
+      locale: settings.locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      home: const SplashScreen(),
     );
   }
 }
 ```
-> AuthUser immutable → sau edit phải tạo object mới (đã có sẵn từ /me response).
 
-#### B2. `mobile/lib/features/profile/data/profile_api.dart` — thêm `updateProfile`
+## Phần B — Settings Screen
+
+### B1. TẠO `mobile/lib/features/settings/presentation/settings_screen.dart`
+`StatefulWidget`, dùng `InheritedWidget` hoặc nhận `AppSettings` qua constructor. Cách đơn giản: truyền `widget.settings` từ ProfileScreen.
+
+Layout:
+- AppBar "Settings".
+- Section "Appearance": `SwitchListTile` "Dark mode" (đọc/gọi `settings.setThemeMode`).
+- Section "Language": `RadioListTile`/`SegmentedButton` 2 lựa chọn English / Tiếng Việt.
+- Section "About": ListTile "Version" → `0.1.0` (đọc từ pubspec qua `package_info_plus` hoặc hardcode cho MVP — hardcode để tránh thêm dep).
+
+Mỗi toggle/setLocale gọi thẳng `widget.settings.setXxx()` → `notifyListeners()` → MaterialApp rebuild → toàn app đổi.
+
+### B2. SỬA `mobile/lib/features/profile/presentation/profile_screen.dart` — thêm tile Settings
+Trong card "Subscription" (hoặc tạo card "Preferences" mới), thêm ListTile:
 ```dart
-import '../../../core/network/api_client.dart';
-import '../../auth/data/auth_api.dart';   // ← import mới cho AuthUser
-
-class ProfileApi {
-  ProfileApi(this._client);
-
-  final ApiClient _client;
-
-  Future<String> uploadAvatar({ ... }) async { ... }   // giữ nguyên
-
-  /// PATCH /api/users/me — cập nhật full_name/phone, trả user mới.
-  Future<AuthUser> updateProfile({String? fullName, String? phone}) async {
-    final response = Map<String, dynamic>.from(
-      await _client.put('/api/users/me', {   // ApiClient có put()
-        if (fullName != null) 'fullName': fullName,
-        if (phone != null) 'phone': phone,
-      }) as Map,
-    );
-    final data = Map<String, dynamic>.from(response['data'] as Map);
-    return AuthUser.fromJson(Map<String, dynamic>.from(data['user'] as Map));
-  }
-}
-```
-> Dùng `put` vì ApiClient không có `patch` (xem api_client.dart: có get/post/put/delete). Backend route là PATCH, nhưng `http.put` tới route PATCH sẽ không match. **Cần xử lý** — xem note cuối.
-
-#### B3. `mobile/lib/features/profile/presentation/profile_screen.dart` — refactor sang state + bottom sheet + return result
-Thay đổi lớn:
-1. **Chuyển `widget.user.*` sang state-held**: thêm `late AuthUser _user` trong initState = `widget.user`. Dùng `_user.fullName`/`_user.phone` trong build thay vì `widget.user.*`. (Avatar đã có `_avatarUrl` state.)
-2. **Thêm edit capability**: tile "Full name" và thêm tile "Phone" mới → bấm mở `_EditProfileSheet`. `_ProfileInfoTile` thêm optional `onTap` + trailing chevron khi editable.
-3. **Thêm tile Phone** vào card Account (hiện thiếu).
-4. **`_openEditName()` / `_openEditPhone()`**: showModalBottomSheet trả `AuthUser?` mới → setState `_user = updated` + cũng propagate về Home.
-5. **Trả user mới về Home**: chuyển `ProfileScreen` thành trả `AuthUser?` qua `Navigator.pop(result)`. Mọi lần update (name/phone/avatar) đều `Navigator.pop(context, _user)` để Home nhận user mới.
-
-#### B4. `mobile/lib/features/home/presentation/home_screen.dart` — nhận user mới từ Profile
-Sửa `_openProfile()` (hiện chỉ `Navigator.push`):
-```dart
-IconButton(
-  tooltip: 'Profile',
-  icon: const Icon(Icons.account_circle_outlined),
-  onPressed: () async {
-    final updatedUser = await Navigator.of(context).push<AuthUser>(
-      MaterialPageRoute(builder: (_) => ProfileScreen(user: widget.auth.user)),
-    );
-    if (updatedUser != null && mounted) {
-      setState(() {
-        widget.auth = AuthResult(user: updatedUser, accessToken: widget.auth.accessToken);
-      });
-    }
-  },
+ListTile(
+  leading: const Icon(Icons.settings_outlined, color: AppColors.accent),
+  title: Text(context.l10n.settings),
+  trailing: const Icon(Icons.chevron_right),
+  onTap: () => Navigator.push(SettingsScreen(settings: ...)),
 ),
 ```
-> `widget.auth` cần mutable — hiện `HomeScreen({required this.auth})` final field. Vì `setState` không đổi field final, cần đổi: hoặc dùng `late AuthResult auth` non-final, hoặc giữ state object riêng. Giải pháp đơn giản: đổi `final AuthResult auth` → `AuthResult auth` (non-final field, mutable) trong HomeScreen. Hoặc tạo biến state riêng `_currentUser`. Tôi sẽ dùng biến state riêng `_currentUser` trong `_HomeScreenState` để sạch hơn.
+> Vấn đề: ProfileScreen hiện không nhận `AppSettings`. Giải pháp: dùng `Finder` qua `context.findAncestorStateOfType` HOẶC dùng InheritedWidget. **Cách sạch nhất cho codebase này**: thêm InheritedWidget `AppSettingsScope` bọc MaterialApp, screens đọc qua `AppSettingsScope.of(context)`. Thêm file `lib/core/settings/app_settings_scope.dart`.
 
-## Logic propagate user mới (fix cả bug avatar)
-- Khi login/splash → Home giữ `widget.auth.user` (AuthUser A).
-- Mở Profile (A) → edit name → `_user = B` → `Navigator.pop(B)`.
-- Home nhận B → setState `_currentUser = B`. AppBar/Profile lần sau dùng B.
-- Avatar cũng qua cùng cơ chế (hiện avatar không pop về Home → bug; sửa luôn).
+**Quyết định**: Tạo `AppSettingsScope` (InheritedNotifier) để mọi screen truy cập `AppSettings` mà không phải truyền qua 20 route. This is the cleanest given the imperative navigation model.
 
-## Note về PATCH vs PUT
-ApiClient chỉ có `get/post/put/delete` (không patch). 2 lựa chọn:
-1. **Thêm method `patch` vào ApiClient** (sạch, đúng语义) — copy pattern `put`.
-2. **Đổi backend route PATCH → PUT** (nhẹ nhưng lệch REST convention).
+### B3. TẠO `mobile/lib/core/settings/app_settings_scope.dart` — InheritedNotifier
+```dart
+class AppSettingsScope extends InheritedNotifier<AppSettings> {
+  const AppSettingsScope({
+    super.key,
+    required AppSettings settings,
+    required super.child,
+  }) : super(notifier: settings);
 
-Tôi khuyến nghị **lựa chọn 1** (thêm patch vào ApiClient) vì codebase dùng PUT cho practice-goals (`PUT /:id`), và REST chuẩn cho partial update là PATCH.
+  static AppSettings of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AppSettingsScope>()!.notifier!;
+  }
+}
+```
+Wrap trong app.dart: `home: AppSettingsScope(settings: settings, child: SplashScreen())`. Screens truy cập: `final settings = AppSettingsScope.of(context);`.
 
-## Ngoài phạm vi (KHÔNG làm)
-- Không cho edit email/role/status (email đổi phức tạp — unique constraint + verification; role/status là admin-only).
-- Không thêm đổi password (cần verify old password + hashing — scope riêng).
-- Không refactor AuthResult/AuthUser thành state management lib.
+## Phần C — Migrate 5 screen chính (dark mode + i18n)
 
-## Kiểm tra
-- Backend: `npm run build`.
-- Mobile: `flutter analyze` + test edit name/phone → về Home → mở lại Profile thấy data mới.
+Với mỗi screen, thay:
+- `Color(0xFFF7F7F2)` → `Theme.of(context).scaffoldBackgroundColor`
+- `Colors.white` (Card bg) → `Theme.of(context).cardTheme.color` hoặc `colorScheme.surface`
+- Hardcoded strings → `context.l10n.keyName`
+- Brand colors (`0xFF1F7A5A`, `0xFF163B32`, gold...) → `AppColors.accent`/`AppColors.accentDark` (không đổi giữa mode)
+
+### Files migrate:
+1. `mobile/lib/features/home/presentation/home_screen.dart`
+2. `mobile/lib/features/profile/presentation/profile_screen.dart`
+3. `mobile/lib/features/practice/presentation/practice_timer_screen.dart`
+4. `mobile/lib/features/practice/presentation/practice_history_screen.dart`
+5. `mobile/lib/features/lessons/presentation/lesson_screen.dart`
+6. `mobile/lib/features/chat/presentation/chat_screen.dart` (bỏ `_isVi` flag + `t()` helper, thay bằng `context.l10n`)
+
+> **Không migrate (giữ nguyên English + light fallback)**: auth, splash, goals, lesson_detail, chords, scales, instruments, vip. Sau này bổ sung dần.
+
+## Phần D — Strings extraction (chi tiết cho app_en.arb)
+Sẽ extract đầy đủ khi implement. Ví dụ cấu trúc:
+```json
+{
+  "@@locale": "en",
+  "appName": "Music Practice Tracker",
+  "@appName": {"description": "App name"},
+  "practiceDashboard": "Practice Dashboard",
+  "hi": "Hi, {name}",
+  "@hi": {"placeholders": {"name": {"type": "String"}}},
+  "today": "Today",
+  "thisWeek": "This week",
+  ...
+}
+```
+
+## Ngoài phạm vi (KHÔNG làm trong task này)
+- Không migrate 8 screen phụ (auth/splash/goals/chords/scales/instruments/vip/lesson_detail) — để task sau.
+- Không thêm package_info_plus (version hardcode).
+- Không thêm theme seed color picker (chỉ toggle dark mode).
+- Không thêm notification reminders (scope khác).
+- Không refator navigation sang GoRouter.
+
+## Verify
+- `cd mobile && flutter pub get` (sinh AppLocalizations).
+- `cd mobile && flutter analyze` — 0 error.
+- Test: Settings → toggle dark mode → Home/Profile/Practice/Lessons/Chat đổi nền tối. Toggle ngôn ngữ → labels đổi vi/en.
 
 ## Thứ tự thực hiện
-1. Backend service (phone trong getCurrentUser + updateMyProfile).
-2. Backend controller + route + build.
-3. Mobile ApiClient thêm patch method.
-4. Mobile auth_api thêm field phone.
-5. Mobile profile_api thêm updateProfile.
-6. Mobile profile_screen refactor + bottom sheet + pop result.
-7. Mobile home_screen nhận user mới.
+1. **Infra**: pubspec + l10n.yaml + 2 ARB + app_colors + app_theme + app_settings + app_settings_scope + l10n_ext.
+2. **Wire**: main.dart + app.dart (StatefulWidget + locale/themeMode).
+3. **Settings screen** + tile trong Profile.
+4. **Migrate 5 screen** (dark mode tokens + strings → context.l10n).
+5. **flutter pub get + analyze + test**.
+
+## Ước lượng
+Đây là task lớn nhất session. ~15 file touch (6 mới + 9 sửa). Token cost cao nhưng đã có plan rõ ràng để execute tuần tự.

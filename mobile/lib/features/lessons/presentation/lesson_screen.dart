@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/l10n/l10n_ext.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/theme/app_colors.dart';
 import '../data/lesson_api.dart';
 import 'lesson_detail_screen.dart';
 import '../../chords/presentation/chords_screen.dart';
@@ -84,24 +86,24 @@ class _LessonsScreenState extends State<LessonsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
       appBar: AppBar(
-        title: const Text('Learn'),
-        backgroundColor: const Color(0xFFF7F7F2),
+        title: Text(l10n.learn),
         actions: [
           TextButton.icon(
             onPressed: _openChords,
             icon: const Icon(Icons.music_note_outlined),
-            label: const Text('Chords'),
+            label: Text(l10n.chords),
           ),
           TextButton.icon(
             onPressed: _openScales,
             icon: const Icon(Icons.graphic_eq),
-            label: const Text('Scales'),
+            label: Text(l10n.scales),
           ),
           IconButton(
-            tooltip: 'Refresh lessons',
+            tooltip: l10n.refreshLessons,
             icon: const Icon(Icons.refresh),
             onPressed: _refresh,
           ),
@@ -128,7 +130,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   Text(
-                    'Could not load lessons',
+                    l10n.couldNotLoadLessons,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
@@ -138,7 +140,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
                   const SizedBox(height: 16),
                   FilledButton(
                     onPressed: _refresh,
-                    child: const Text('Try again'),
+                    child: Text(l10n.tryAgain),
                   ),
                 ],
               );
@@ -151,14 +153,14 @@ class _LessonsScreenState extends State<LessonsScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 Text(
-                  'Build your skills',
+                  l10n.buildYourSkills,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Choose a lesson and keep your progress moving.',
+                  l10n.lessonsSubtitle,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 20),
@@ -168,7 +170,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
                     scrollDirection: Axis.horizontal,
                     children: [
                       ChoiceChip(
-                        label: const Text('All'),
+                        label: Text(l10n.all),
                         selected: _selectedCategoryId == null,
                         onSelected: (_) => _selectCategory(null),
                       ),
@@ -190,17 +192,17 @@ class _LessonsScreenState extends State<LessonsScreen> {
                 ),
                 const SizedBox(height: 20),
                 if (data.lessons.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 64),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 64),
                     child: Column(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.menu_book_outlined,
                           size: 56,
-                          color: Color(0xFF1F7A5A),
+                          color: AppColors.accent,
                         ),
-                        SizedBox(height: 12),
-                        Text('No lessons available yet'),
+                        const SizedBox(height: 12),
+                        Text(l10n.noLessonsAvailable),
                       ],
                     ),
                   )
@@ -238,6 +240,7 @@ class _LessonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final metadata = [
       if (lesson.categoryName != null) lesson.categoryName!,
       if (lesson.instrumentName != null) lesson.instrumentName!,
@@ -246,7 +249,6 @@ class _LessonCard extends StatelessWidget {
 
     return Card(
       elevation: 0,
-      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -260,14 +262,14 @@ class _LessonCard extends StatelessWidget {
                 height: 42,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8EFE7),
+                  color: AppColors.accentSurface,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   lesson.progressStatus == 'completed'
                       ? Icons.check_circle_outline
                       : Icons.menu_book_outlined,
-                  color: const Color(0xFF1F7A5A),
+                  color: AppColors.accent,
                 ),
               ),
               const SizedBox(width: 12),
@@ -284,28 +286,28 @@ class _LessonCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       metadata.join(' | '),
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).hintColor,
+                      ),
                     ),
                     if (lesson.progressStatus != null) ...[
                       const SizedBox(height: 6),
                       Text(
                         lesson.progressStatus == 'completed'
-                            ? 'Completed'
-                            : 'In progress',
-                        style: const TextStyle(color: Color(0xFF1F7A5A)),
+                            ? l10n.completed
+                            : l10n.inProgress,
+                        style: const TextStyle(color: AppColors.accent),
                       ),
                     ],
                   ],
                 ),
               ),
               if (lesson.isVip)
-                const Tooltip(
-                  message: 'VIP lesson',
-                  child: Icon(
+                Tooltip(
+                  message: l10n.vipLesson,
+                  child: const Icon(
                     Icons.workspace_premium_outlined,
-                    color: Color(0xFFB7791F),
+                    color: AppColors.goldText,
                   ),
                 ),
             ],

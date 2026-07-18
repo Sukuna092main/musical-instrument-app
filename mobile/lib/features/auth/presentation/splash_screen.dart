@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/network/api_client.dart';
 import '../data/auth_api.dart';
 import '../../home/presentation/home_screen.dart';
 import 'auth_screen.dart';
@@ -59,8 +58,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -69,12 +69,12 @@ class _SplashScreenState extends State<SplashScreen> {
               width: 88,
               height: 88,
               decoration: BoxDecoration(
-                color: const Color(0xFF1F7A5A),
+                color: scheme.primary,
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.music_note,
-                color: Colors.white,
+                color: scheme.onPrimary,
                 size: 48,
               ),
             ),
@@ -86,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 24),
-            const CircularProgressIndicator(color: Color(0xFF1F7A5A)),
+            CircularProgressIndicator(color: scheme.primary),
           ],
         ),
       ),

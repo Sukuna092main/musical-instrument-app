@@ -48,11 +48,17 @@ class _ScalesScreenState extends State<ScalesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
       appBar: AppBar(
         title: const Text('Scales'),
-        backgroundColor: const Color(0xFFF7F7F2),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        foregroundColor: scheme.onSurface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         actions: [
           IconButton(
             tooltip: 'Refresh scales',
@@ -83,7 +89,7 @@ class _ScalesScreenState extends State<ScalesScreen> {
                 children: [
                   Text(
                     'Could not load scales',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: theme.textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -114,14 +120,14 @@ class _ScalesScreenState extends State<ScalesScreen> {
               children: [
                 Text(
                   'Scale library',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Explore scales for the instruments you are learning.',
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: theme.textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -150,14 +156,14 @@ class _ScalesScreenState extends State<ScalesScreen> {
                 ),
                 const SizedBox(height: 20),
                 if (filteredScales.isEmpty)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 64),
                     child: Column(
                       children: [
                         Icon(
                           Icons.music_note_outlined,
                           size: 56,
-                          color: Color(0xFF1F7A5A),
+                          color: scheme.primary,
                         ),
                         SizedBox(height: 12),
                         Text('No scales available yet'),
@@ -196,8 +202,13 @@ class _ScaleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final title = scale.key?.trim().isNotEmpty == true
+        ? scale.key!.trim()
+        : scale.name;
+
     final metadata = [
-      if (scale.key != null) scale.key!,
       if (scale.instrumentName != null) scale.instrumentName!,
       _capitalize(scale.scaleType),
       _capitalize(scale.difficulty),
@@ -205,7 +216,6 @@ class _ScaleCard extends StatelessWidget {
 
     return Card(
       elevation: 0,
-      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -219,10 +229,16 @@ class _ScaleCard extends StatelessWidget {
                 height: 44,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8EFE7),
+                  color: scheme.primaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.graphic_eq, color: Color(0xFF1F7A5A)),
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: scheme.onPrimaryContainer,
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -231,26 +247,26 @@ class _ScaleCard extends StatelessWidget {
                   children: [
                     Text(
                       scale.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       metadata.join(' | '),
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
               ),
               if (scale.isVip)
-                const Tooltip(
+                Tooltip(
                   message: 'VIP scale',
                   child: Icon(
                     Icons.workspace_premium_outlined,
-                    color: Color(0xFFB7791F),
+                    color: scheme.tertiary,
                   ),
                 )
               else

@@ -23,12 +23,14 @@ class _GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final progressValue = goal.progress.clamp(0, 100).toDouble() / 100;
     final unit = GoalType.unit(goal.goalType);
 
     return Card(
       elevation: 0,
-      color: Colors.white,
+      // Không đặt color: Colors.white.
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
@@ -37,12 +39,12 @@ class _GoalCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(_iconFor(goal.goalType), color: const Color(0xFF1F7A5A)),
+                Icon(_iconFor(goal.goalType), color: scheme.primary),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     GoalType.label(goal.goalType),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -63,25 +65,23 @@ class _GoalCard extends StatelessWidget {
             LinearProgressIndicator(
               value: progressValue,
               minHeight: 8,
-              backgroundColor: const Color(0xFFE2E7DF),
-              color: goal.completed
-                  ? const Color(0xFF1F7A5A)
-                  : const Color(0xFFB7791F),
+              backgroundColor: scheme.surfaceContainerHighest,
+              color: goal.completed ? scheme.primary : scheme.tertiary,
             ),
             const SizedBox(height: 10),
             Text(
               '${goal.currentValue}/${goal.targetValue} $unit - ${goal.progress.clamp(0, 100)}%',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.black87),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurface,
+              ),
             ),
             if (goal.instrumentName != null) ...[
               const SizedBox(height: 4),
               Text(
                 goal.instrumentName!,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
             ],
           ],
@@ -181,6 +181,7 @@ class _GoalFormSheetState extends State<_GoalFormSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final scheme = Theme.of(context).colorScheme;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset + 16),
@@ -210,7 +211,7 @@ class _GoalFormSheetState extends State<_GoalFormSheet> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _goalType,
+              initialValue: _goalType,
               decoration: const InputDecoration(labelText: 'Goal type'),
               items: GoalType.values
                   .map(
@@ -244,7 +245,7 @@ class _GoalFormSheetState extends State<_GoalFormSheet> {
             ),
             if (_error != null) ...[
               const SizedBox(height: 12),
-              Text(_error!, style: const TextStyle(color: Colors.red)),
+              Text(_error!, style: TextStyle(color: scheme.error)),
             ],
             const SizedBox(height: 16),
             SizedBox(
@@ -300,6 +301,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
   }
 
   Future<void> _deleteGoal(PracticeGoalProgress goal) async {
+    final scheme = Theme.of(context).colorScheme;
+
     final confirmed =
         await showDialog<bool>(
           context: context,
@@ -313,6 +316,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   child: const Text('Cancel'),
                 ),
                 FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: scheme.error,
+                    foregroundColor: scheme.onError,
+                  ),
                   onPressed: () => Navigator.of(context).pop(true),
                   child: const Text('Delete'),
                 ),
@@ -341,11 +348,13 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
+      // Không đặt backgroundColor: Color(0xFFF7F7F2).
       appBar: AppBar(
         title: const Text('Goals'),
-        backgroundColor: const Color(0xFFF7F7F2),
+        // Không đặt backgroundColor: Color(0xFFF7F7F2).
         actions: [
           IconButton(
             tooltip: 'Add goal',
@@ -391,11 +400,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   const SizedBox(height: 80),
-                  const Icon(
-                    Icons.flag_outlined,
-                    size: 56,
-                    color: Color(0xFF1F7A5A),
-                  ),
+                  Icon(Icons.flag_outlined, size: 56, color: scheme.primary),
                   const SizedBox(height: 16),
                   Text(
                     'No goals yet',
@@ -415,7 +420,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
             return ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: goals.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final goal = goals[index];
                 return _GoalCard(

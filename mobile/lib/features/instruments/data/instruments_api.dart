@@ -138,8 +138,8 @@ class InstrumentsApi {
   }) async {
     final response = Map<String, dynamic>.from(
       await _client.put('/api/user-instruments/$instrumentId', {
-            if (skillLevel != null) 'skillLevel': skillLevel,
-            if (isPrimary != null) 'isPrimary': isPrimary,
+            'skillLevel': ?skillLevel,
+            'isPrimary': ?isPrimary,
           })
           as Map,
     );

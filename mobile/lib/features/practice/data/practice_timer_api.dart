@@ -82,7 +82,7 @@ class PracticeTimerApi {
   }) async {
     await _client.post('/api/practice-sessions/$sessionId/end', {
       if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
-      if (mood != null) 'mood': mood,
+      'mood': ?mood,
     });
   }
 }

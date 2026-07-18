@@ -26,11 +26,17 @@ class _ChordDetailScreenState extends State<ChordDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
       appBar: AppBar(
         title: const Text('Chord'),
-        backgroundColor: const Color(0xFFF7F7F2),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        foregroundColor: scheme.onSurface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       body: FutureBuilder<ChordDetail>(
         future: _chordFuture,
@@ -72,7 +78,7 @@ class _ChordDetailScreenState extends State<ChordDetailScreen> {
                       chord.canAccess
                           ? Icons.workspace_premium_outlined
                           : Icons.lock_outline,
-                      color: const Color(0xFFB7791F),
+                      color: scheme.tertiary,
                     ),
                 ],
               ),
@@ -86,9 +92,9 @@ class _ChordDetailScreenState extends State<ChordDetailScreen> {
               const SizedBox(height: 8),
               Text(
                 _metadata(chord),
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.black54),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               if (!chord.canAccess)
@@ -152,11 +158,13 @@ class _ChordDiagram extends StatelessWidget {
       return const _DiagramPlaceholder();
     }
 
+    final scheme = Theme.of(context).colorScheme;
+
     return AspectRatio(
       aspectRatio: 4 / 3,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: scheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(8),
         ),
         child: ClipRRect(
@@ -177,18 +185,20 @@ class _DiagramPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return AspectRatio(
       aspectRatio: 4 / 3,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: const Color(0xFFE8EFE7),
+          color: scheme.primaryContainer,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Center(
+        child: Center(
           child: Icon(
             Icons.music_note_outlined,
             size: 56,
-            color: Color(0xFF1F7A5A),
+            color: scheme.onPrimaryContainer,
           ),
         ),
       ),
@@ -201,25 +211,37 @@ class _LockedChord extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF4DE),
+        color: scheme.tertiaryContainer,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Column(
+      child: Column(
         children: [
           Icon(
             Icons.workspace_premium_outlined,
             size: 42,
-            color: Color(0xFFB7791F),
+            color: scheme.onTertiaryContainer,
           ),
           SizedBox(height: 12),
-          Text('VIP chord', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text(
+            'VIP chord',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: scheme.onTertiaryContainer,
+            ),
+          ),
           SizedBox(height: 4),
           Text(
             'Upgrade to VIP to unlock this chord diagram.',
             textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: scheme.onTertiaryContainer,
+            ),
           ),
         ],
       ),

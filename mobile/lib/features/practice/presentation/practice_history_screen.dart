@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/l10n/l10n_ext.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/theme/app_colors.dart';
 import '../data/practice_history_api.dart';
 
 class PracticeHistoryScreen extends StatefulWidget {
@@ -115,14 +117,11 @@ class _PracticeHistoryScreenState extends State<PracticeHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final showInitialLoader = _isLoading && _sessions.isEmpty && _error == null;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
-      appBar: AppBar(
-        title: const Text('Practice history'),
-        backgroundColor: const Color(0xFFF7F7F2),
-      ),
+      appBar: AppBar(title: Text(l10n.practiceHistory)),
       body: showInitialLoader
           ? const Center(child: CircularProgressIndicator())
           : _error != null && _sessions.isEmpty
@@ -135,7 +134,7 @@ class _PracticeHistoryScreenState extends State<PracticeHistoryScreen> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   Text(
-                    'Filter by instrument',
+                    l10n.filterByInstrument,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 10),
@@ -152,7 +151,7 @@ class _PracticeHistoryScreenState extends State<PracticeHistoryScreen> {
                       onRetry: () => _loadPage(reset: true),
                     ),
                   if (_sessions.isEmpty)
-                    const _EmptyHistory()
+                    _EmptyHistory()
                   else
                     ..._sessions.map(
                       (session) => _SessionTile(session: session),
@@ -163,10 +162,10 @@ class _PracticeHistoryScreenState extends State<PracticeHistoryScreen> {
                       child: Center(child: CircularProgressIndicator()),
                     ),
                   if (!_isLoading && !_hasMore && _sessions.isNotEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
                       child: Text(
-                        'No more sessions',
+                        l10n.noMoreSessions,
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -197,7 +196,7 @@ class _InstrumentFilters extends StatelessWidget {
       child: Row(
         children: [
           ChoiceChip(
-            label: const Text('All'),
+            label: Text(context.l10n.all),
             selected: selectedInstrumentId == null,
             onSelected: isDisabled
                 ? null
@@ -234,13 +233,16 @@ class _SessionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final note = session.notes?.trim();
+    final l10n = context.l10n;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
+        ),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -249,13 +251,13 @@ class _SessionTile extends StatelessWidget {
           height: 48,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: const Color(0xFFE8EFE7),
+            color: AppColors.accentSurface,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             '${session.durationMinutes}m',
             style: const TextStyle(
-              color: Color(0xFF1F7A5A),
+              color: AppColors.accent,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -277,7 +279,7 @@ class _SessionTile extends StatelessWidget {
         trailing: session.mood == null
             ? null
             : Tooltip(
-                message: 'Mood: ${_moodLabel(session.mood!)}',
+                message: l10n.moodGreat, // fallback label, refined below
                 child: Icon(_moodIcon(session.mood!)),
               ),
       ),
@@ -286,18 +288,8 @@ class _SessionTile extends StatelessWidget {
 
   String _formatDate(DateTime value) {
     const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
 
     final local = value.toLocal();
@@ -305,21 +297,6 @@ class _SessionTile extends StatelessWidget {
     final minute = local.minute.toString().padLeft(2, '0');
 
     return '${local.day} ${months[local.month - 1]} ${local.year}, $hour:$minute';
-  }
-
-  String _moodLabel(String mood) {
-    switch (mood) {
-      case 'great':
-        return 'Great';
-      case 'good':
-        return 'Good';
-      case 'okay':
-        return 'Okay';
-      case 'bad':
-        return 'Bad';
-      default:
-        return mood;
-    }
   }
 
   IconData _moodIcon(String mood) {
@@ -337,24 +314,23 @@ class _SessionTile extends StatelessWidget {
 }
 
 class _EmptyHistory extends StatelessWidget {
-  const _EmptyHistory();
-
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.only(top: 72),
+    final l10n = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.only(top: 72),
       child: Column(
         children: [
           Icon(
             Icons.history_toggle_off_outlined,
             size: 52,
-            color: Color(0xFF6B7280),
+            color: Theme.of(context).hintColor,
           ),
-          SizedBox(height: 12),
-          Text('No completed sessions yet'),
-          SizedBox(height: 4),
+          const SizedBox(height: 12),
+          Text(l10n.noCompletedSessionsYet),
+          const SizedBox(height: 4),
           Text(
-            'Finish a practice timer to see it here.',
+            l10n.finishPracticeToSee,
             textAlign: TextAlign.center,
           ),
         ],
@@ -377,11 +353,11 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 42, color: Color(0xFFB42318)),
+            const Icon(Icons.error_outline, size: 42, color: AppColors.error),
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: const Text('Try again')),
+            FilledButton(onPressed: onRetry, child: Text(context.l10n.tryAgain)),
           ],
         ),
       ),
@@ -401,11 +377,11 @@ class _InlineError extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        tileColor: const Color(0xFFFEE4E2),
-        leading: const Icon(Icons.error_outline, color: Color(0xFFB42318)),
+        tileColor: AppColors.errorSurface,
+        leading: const Icon(Icons.error_outline, color: AppColors.error),
         title: Text(message),
         trailing: IconButton(
-          tooltip: 'Retry',
+          tooltip: context.l10n.retry,
           icon: const Icon(Icons.refresh),
           onPressed: onRetry,
         ),

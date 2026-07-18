@@ -51,7 +51,6 @@ class _InstrumentsScreenState extends State<InstrumentsScreen> {
     final added = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFFF7F7F2),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -74,7 +73,6 @@ class _InstrumentsScreenState extends State<InstrumentsScreen> {
     final changed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFFF7F7F2),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -89,6 +87,8 @@ class _InstrumentsScreenState extends State<InstrumentsScreen> {
 
   // ── Remove ──
   Future<void> _confirmRemove(UserInstrument instrument) async {
+    final scheme = Theme.of(context).colorScheme;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -101,7 +101,8 @@ class _InstrumentsScreenState extends State<InstrumentsScreen> {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFB42318),
+              backgroundColor: scheme.error,
+              foregroundColor: scheme.onError,
             ),
             onPressed: () => Navigator.of(context).pop(true),
             child: const Text('Remove'),
@@ -157,11 +158,17 @@ class _InstrumentsScreenState extends State<InstrumentsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
       appBar: AppBar(
         title: const Text('My instruments'),
-        backgroundColor: const Color(0xFFF7F7F2),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        foregroundColor: scheme.onSurface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         actions: [
           IconButton(
             tooltip: 'Add instrument',
@@ -229,16 +236,18 @@ class _InstrumentsScreenState extends State<InstrumentsScreen> {
   }
 
   Widget _buildEmpty() {
+    final scheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.music_off_outlined,
               size: 56,
-              color: Color(0xFF1F7A5A),
+              color: scheme.primary,
             ),
             const SizedBox(height: 12),
             Text(
@@ -248,10 +257,10 @@ class _InstrumentsScreenState extends State<InstrumentsScreen> {
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Add an instrument to start tracking your practice.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.black54),
+              style: TextStyle(color: scheme.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
@@ -289,9 +298,10 @@ class _InstrumentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Card(
       elevation: 0,
-      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -373,19 +383,19 @@ class _InstrumentCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: _InstrumentAction.remove,
                     child: Row(
                       children: [
                         Icon(
                           Icons.delete_outline,
                           size: 20,
-                          color: Color(0xFFB42318),
+                          color: scheme.error,
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Text(
                           'Remove',
-                          style: TextStyle(color: Color(0xFFB42318)),
+                          style: TextStyle(color: scheme.error),
                         ),
                       ],
                     ),
@@ -417,17 +427,19 @@ class _InstrumentAvatar extends StatelessWidget {
             ? Image.network(
                 url,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _fallback(),
+                errorBuilder: (_, _, _) => _fallback(context),
               )
-            : _fallback(),
+            : _fallback(context),
       ),
     );
   }
 
-  Widget _fallback() {
+  Widget _fallback(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Container(
-      color: const Color(0xFFE8EFE7),
-      child: const Icon(Icons.music_note, color: Color(0xFF1F7A5A)),
+      color: scheme.primaryContainer,
+      child: Icon(Icons.music_note, color: scheme.onPrimaryContainer),
     );
   }
 }
@@ -483,6 +495,8 @@ class _AddInstrumentSheetState extends State<_AddInstrumentSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.8,
@@ -497,21 +511,21 @@ class _AddInstrumentSheetState extends State<_AddInstrumentSheet> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.black26,
+                  color: scheme.outlineVariant,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             Text(
               'Browse instruments',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Pick an instrument to add to your practice.',
-              style: TextStyle(color: Colors.black54),
+              style: TextStyle(color: scheme.onSurfaceVariant),
             ),
             const SizedBox(height: 12),
             Expanded(child: _buildList()),
@@ -555,13 +569,15 @@ class _AddInstrumentSheetState extends State<_AddInstrumentSheet> {
             .toList();
 
         if (available.isEmpty) {
-          return const Center(
+          return Center(
             child: Padding(
-              padding: EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24),
               child: Text(
                 'You have added all available instruments.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.black54),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           );
@@ -569,7 +585,7 @@ class _AddInstrumentSheetState extends State<_AddInstrumentSheet> {
 
         return ListView.separated(
           itemCount: available.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
+          separatorBuilder: (_, _) => const Divider(height: 1),
           itemBuilder: (context, index) {
             final option = available[index];
             final isAdding = _addingId == option.id;
@@ -610,6 +626,8 @@ class _AvailableInstrumentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
@@ -627,7 +645,10 @@ class _AvailableInstrumentTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   _capitalize(option.type),
-                  style: const TextStyle(color: Colors.black54, fontSize: 13),
+                  style: TextStyle(
+                    color: scheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
@@ -651,16 +672,15 @@ class _AvailableInstrumentTile extends StatelessWidget {
           FilledButton(
             onPressed: onAdd,
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF1F7A5A),
               padding: const EdgeInsets.symmetric(horizontal: 14),
             ),
             child: isAdding
-                ? const SizedBox(
+                ? SizedBox(
                     height: 18,
                     width: 18,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: scheme.onPrimary,
                     ),
                   )
                 : const Text('Add'),
@@ -732,6 +752,7 @@ class _EditInstrumentSheetState extends State<_EditInstrumentSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final scheme = Theme.of(context).colorScheme;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + bottomInset),
@@ -745,7 +766,7 @@ class _EditInstrumentSheetState extends State<_EditInstrumentSheet> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: Colors.black26,
+                color: scheme.outlineVariant,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -791,7 +812,7 @@ class _EditInstrumentSheetState extends State<_EditInstrumentSheet> {
               'Your main instrument. Only one can be primary.',
             ),
             value: _isPrimary,
-            activeTrackColor: const Color(0xFF1F7A5A),
+            activeTrackColor: scheme.primary,
             onChanged: (value) => setState(() => _isPrimary = value),
           ),
           const SizedBox(height: 12),
@@ -799,16 +820,13 @@ class _EditInstrumentSheetState extends State<_EditInstrumentSheet> {
             width: double.infinity,
             child: FilledButton(
               onPressed: _isSaving ? null : _save,
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF1F7A5A),
-              ),
               child: _isSaving
-                  ? const SizedBox(
+                  ? SizedBox(
                       height: 18,
                       width: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: scheme.onPrimary,
                       ),
                     )
                   : const Text('Save'),

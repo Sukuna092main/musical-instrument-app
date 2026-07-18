@@ -5,27 +5,29 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:music_practice_tracker/app.dart';
-
-import 'package:music_practice_tracker/main.dart';
+import 'package:music_practice_tracker/core/settings/app_settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MusicPracticeApp());
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('opens login screen when there is no saved token', (
+    WidgetTester tester,
+  ) async {
+    final settings = AppSettings();
+    await settings.load();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.pumpWidget(MusicPracticeApp(settings: settings));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Music Practice Tracker'), findsOneWidget);
+    expect(find.text('Login'), findsOneWidget);
+    expect(find.text('Create account'), findsNothing);
   });
 }

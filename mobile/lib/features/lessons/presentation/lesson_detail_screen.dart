@@ -64,11 +64,17 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF7F7F2),
         title: const Text('Lesson'),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        foregroundColor: scheme.onSurface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       body: FutureBuilder<LessonDetail>(
         future: _lessonFuture,
@@ -100,7 +106,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                   Expanded(
                     child: Text(
                       lesson.title,
-                      style: Theme.of(context).textTheme.headlineSmall
+                      style: theme.textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -109,16 +115,16 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                       lesson.canAccess
                           ? Icons.workspace_premium_outlined
                           : Icons.lock_outline,
-                      color: const Color(0xFFB7791F),
+                      color: scheme.tertiary,
                     ),
                 ],
               ),
               const SizedBox(height: 8),
               Text(
                 _metadata(lesson),
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.black54),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               if (!lesson.canAccess)
@@ -137,7 +143,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                 if (_actionError != null) ...[
                   Text(
                     _actionError!,
-                    style: const TextStyle(color: Colors.red),
+                    style: TextStyle(color: scheme.error),
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -185,10 +191,13 @@ class _LockedLesson extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF4DE),
+        color: scheme.tertiaryContainer,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -196,14 +205,23 @@ class _LockedLesson extends StatelessWidget {
           Icon(
             Icons.workspace_premium_outlined,
             size: 42,
-            color: Color(0xFFB7791F),
+            color: scheme.onTertiaryContainer,
           ),
-          SizedBox(height: 12),
-          Text('VIP lesson', style: TextStyle(fontWeight: FontWeight.w700)),
-          SizedBox(height: 4),
+          const SizedBox(height: 12),
+          Text(
+            'VIP lesson',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: scheme.onTertiaryContainer,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
           Text(
             'Upgrade to VIP to unlock this lesson.',
             textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: scheme.onTertiaryContainer,
+            ),
           ),
           const SizedBox(height: 16),
           FilledButton.icon(

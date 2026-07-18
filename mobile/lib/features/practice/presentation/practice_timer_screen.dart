@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/l10n/l10n_ext.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/theme/app_colors.dart';
 import '../data/practice_api.dart';
 import '../data/practice_timer_api.dart';
 import '../../instruments/presentation/instruments_screen.dart';
@@ -189,12 +191,10 @@ class _PracticeTimerScreenState extends State<PracticeTimerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
-      appBar: AppBar(
-        title: const Text('Practice timer'),
-        backgroundColor: const Color(0xFFF7F7F2),
-      ),
+      appBar: AppBar(title: Text(l10n.practiceTimer)),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -244,30 +244,31 @@ class _StartSessionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final hasInstruments = instruments.isNotEmpty;
 
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const Icon(Icons.timer_outlined, size: 54, color: Color(0xFF1F7A5A)),
+        const Icon(Icons.timer_outlined, size: 54, color: AppColors.accent),
         const SizedBox(height: 16),
         Text(
-          'Ready to practice?',
+          l10n.readyToPractice,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Choose an instrument and start tracking your session.',
+        Text(
+          l10n.chooseInstrumentHint,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 32),
         DropdownButtonFormField<UserPracticeInstrument>(
-          value: selectedInstrument,
+          initialValue: selectedInstrument,
           isExpanded: true,
-          decoration: const InputDecoration(
-            labelText: 'Instrument',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.instrument,
+            border: const OutlineInputBorder(),
           ),
           items: instruments
               .map(
@@ -281,15 +282,15 @@ class _StartSessionView extends StatelessWidget {
         ),
         if (!hasInstruments) ...[
           const SizedBox(height: 12),
-          const Text(
-            'You have not added an instrument to your profile yet.',
+          Text(
+            l10n.noInstrumentYet,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           TextButton.icon(
             onPressed: onAddInstrument,
             icon: const Icon(Icons.add),
-            label: const Text('Add instrument'),
+            label: Text(l10n.addInstrument),
           ),
         ],
         const SizedBox(height: 20),
@@ -302,7 +303,7 @@ class _StartSessionView extends StatelessWidget {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.play_arrow),
-          label: Text(isStarting ? 'Starting...' : 'Start practice'),
+          label: Text(isStarting ? l10n.starting : l10n.startPractice),
         ),
       ],
     );
@@ -330,13 +331,15 @@ class _ActiveSessionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: const Color(0xFF163B32),
+            color: AppColors.accentDark,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -357,9 +360,9 @@ class _ActiveSessionView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                'Session in progress',
-                style: TextStyle(color: Colors.white70),
+              Text(
+                l10n.sessionInProgress,
+                style: const TextStyle(color: Colors.white70),
               ),
             ],
           ),
@@ -370,26 +373,26 @@ class _ActiveSessionView extends StatelessWidget {
           minLines: 3,
           maxLines: 5,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            labelText: 'Practice notes',
-            hintText: 'What did you work on today?',
+          decoration: InputDecoration(
+            labelText: l10n.practiceNotes,
+            hintText: l10n.notesHint,
             alignLabelWithHint: true,
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 24),
         Text(
-          'How did it feel?',
+          l10n.howDidItFeel,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 10),
         SegmentedButton<String>(
           emptySelectionAllowed: true,
-          segments: const [
-            ButtonSegment(value: 'great', label: Text('Great')),
-            ButtonSegment(value: 'good', label: Text('Good')),
-            ButtonSegment(value: 'okay', label: Text('Okay')),
-            ButtonSegment(value: 'bad', label: Text('Bad')),
+          segments: [
+            ButtonSegment(value: 'great', label: Text(l10n.moodGreat)),
+            ButtonSegment(value: 'good', label: Text(l10n.moodGood)),
+            ButtonSegment(value: 'okay', label: Text(l10n.moodOkay)),
+            ButtonSegment(value: 'bad', label: Text(l10n.moodBad)),
           ],
           selected: mood == null ? <String>{} : {mood!},
           onSelectionChanged: (selection) {
@@ -398,9 +401,7 @@ class _ActiveSessionView extends StatelessWidget {
         ),
         const SizedBox(height: 28),
         FilledButton.icon(
-          style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFFB42318),
-          ),
+          style: FilledButton.styleFrom(backgroundColor: AppColors.error),
           onPressed: isEnding ? null : onEnd,
           icon: isEnding
               ? const SizedBox(
@@ -409,7 +410,7 @@ class _ActiveSessionView extends StatelessWidget {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.stop),
-          label: Text(isEnding ? 'Saving...' : 'End and save session'),
+          label: Text(isEnding ? l10n.saving : l10n.endAndSave),
         ),
       ],
     );
@@ -430,11 +431,11 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 42, color: Color(0xFFB42318)),
+            const Icon(Icons.error_outline, size: 42, color: AppColors.error),
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: const Text('Try again')),
+            FilledButton(onPressed: onRetry, child: Text(context.l10n.tryAgain)),
           ],
         ),
       ),

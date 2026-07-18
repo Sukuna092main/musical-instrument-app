@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'app.dart';
+import 'core/settings/app_settings.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MusicPracticeApp());
+
+  final settings = AppSettings();
+  await settings.load();
+
+  runApp(MusicPracticeApp(settings: settings));
 }

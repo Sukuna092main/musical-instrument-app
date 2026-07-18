@@ -32,8 +32,8 @@ class ProfileApi {
   Future<AuthUser> updateProfile({String? fullName, String? phone}) async {
     final response = Map<String, dynamic>.from(
       await _client.patch('/api/users/me', {
-            if (fullName != null) 'fullName': fullName,
-            if (phone != null) 'phone': phone,
+            'fullName': ?fullName,
+            'phone': ?phone,
           })
           as Map,
     );

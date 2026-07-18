@@ -119,7 +119,7 @@ class PracticeGoalsApi {
     await _client.post('/api/practice-goals', {
       'goalType': goalType,
       'targetValue': targetValue,
-      if (instrumentId != null) 'instrumentId': instrumentId,
+      'instrumentId': ?instrumentId,
     });
   }
 
@@ -130,9 +130,9 @@ class PracticeGoalsApi {
     bool? isActive,
   }) async {
     await _client.put('/api/practice-goals/$goalId', {
-      if (goalType != null) 'goalType': goalType,
-      if (targetValue != null) 'targetValue': targetValue,
-      if (isActive != null) 'isActive': isActive,
+      'goalType': ?goalType,
+      'targetValue': ?targetValue,
+      'isActive': ?isActive,
     });
   }
 

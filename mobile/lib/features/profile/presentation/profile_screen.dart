@@ -3,8 +3,11 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/l10n/l10n_ext.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../auth/data/auth_api.dart';
+import '../../settings/presentation/settings_screen.dart';
 import '../data/profile_api.dart';
 import '../../vip/presentation/vip_screen.dart';
 
@@ -49,7 +52,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final mimeType = image.mimeType ?? _mimeTypeFromPath(image.path);
 
     if (mimeType == null) {
-      _showMessage('Only JPG, PNG, and WEBP images are supported.');
+      if (!mounted) return;
+      _showMessage(context.l10n.onlyJpgPngWebp);
       return;
     }
 
@@ -77,7 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _user = _copyWith(avatarUrl: avatarUrl);
       });
 
-      _showMessage('Profile photo updated.');
+      _showMessage(context.l10n.profilePhotoUpdated);
     } catch (error) {
       if (!mounted) {
         return;
@@ -101,13 +105,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final updated = await showModalBottomSheet<AuthUser>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFFF7F7F2),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => _EditFieldSheet(
-        title: 'Edit full name',
-        label: 'Full name',
+        title: context.l10n.editFullName,
+        label: context.l10n.fullName,
         initialValue: _user.fullName,
         maxLines: 1,
         maxLength: 100,
@@ -117,7 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (updated != null && mounted) {
       setState(() => _user = updated);
-      _showMessage('Name updated.');
+      _showMessage(context.l10n.nameUpdated);
     }
   }
 
@@ -125,13 +129,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final updated = await showModalBottomSheet<AuthUser>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFFF7F7F2),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => _EditFieldSheet(
-        title: 'Edit phone',
-        label: 'Phone number',
+        title: context.l10n.editPhone,
+        label: context.l10n.phoneNumberLabel,
         initialValue: _user.phone ?? '',
         maxLines: 1,
         maxLength: 30,
@@ -142,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (updated != null && mounted) {
       setState(() => _user = updated);
-      _showMessage('Phone updated.');
+      _showMessage(context.l10n.phoneUpdated);
     }
   }
 
@@ -201,7 +205,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       content = Image.network(
         _avatarUrl!,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _avatarFallback(),
+        errorBuilder: (_, _, _) => _avatarFallback(),
       );
     } else {
       content = _avatarFallback();
@@ -228,10 +232,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             right: 2,
             bottom: 2,
             child: Material(
-              color: const Color(0xFF1F7A5A),
+              color: AppColors.accent,
               shape: const CircleBorder(),
               child: IconButton(
-                tooltip: 'Change profile photo',
+                tooltip: context.l10n.changeProfilePhoto,
                 onPressed: _isUploading ? null : _chooseAvatar,
                 icon: const Icon(Icons.camera_alt_outlined),
                 color: Colors.white,
@@ -245,15 +249,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _avatarFallback() {
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: Color(0xFFE8EFE7),
+      decoration: BoxDecoration(
+        color: AppColors.accentSurface,
         shape: BoxShape.circle,
       ),
       child: Center(
         child: Text(
           _initial,
           style: const TextStyle(
-            color: Color(0xFF1F7A5A),
+            color: AppColors.accent,
             fontSize: 40,
             fontWeight: FontWeight.w700,
           ),
@@ -264,12 +268,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F2),
-      appBar: AppBar(
-        title: const Text('Profile'),
-        backgroundColor: const Color(0xFFF7F7F2),
-      ),
+      appBar: AppBar(title: Text(l10n.profile)),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -288,11 +290,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             textAlign: TextAlign.center,
             style: Theme.of(
               context,
-            ).textTheme.bodyLarge?.copyWith(color: Colors.black54),
+            ).textTheme.bodyLarge?.copyWith(color: Theme.of(context).hintColor),
           ),
           const SizedBox(height: 32),
           Text(
-            'Account',
+            l10n.account,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
@@ -308,29 +310,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 _ProfileInfoTile(
                   icon: Icons.person_outline,
-                  label: 'Full name',
+                  label: l10n.fullName,
                   value: _user.fullName,
                   onTap: _openEditName,
                 ),
                 const Divider(height: 1, indent: 56),
                 _ProfileInfoTile(
                   icon: Icons.phone_outlined,
-                  label: 'Phone',
+                  label: l10n.phone,
                   value: _user.phone?.isNotEmpty == true
                       ? _user.phone!
-                      : 'Not set',
+                      : l10n.phoneNotSet,
                   onTap: _openEditPhone,
                 ),
                 const Divider(height: 1, indent: 56),
                 _ProfileInfoTile(
                   icon: Icons.email_outlined,
-                  label: 'Email',
+                  label: l10n.email,
                   value: _user.email,
                 ),
                 const Divider(height: 1, indent: 56),
                 _ProfileInfoTile(
                   icon: Icons.badge_outlined,
-                  label: 'Account type',
+                  label: l10n.accountType,
                   value: _user.role,
                 ),
               ],
@@ -338,7 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            'Subscription',
+            l10n.subscription,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
@@ -353,15 +355,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: ListTile(
               leading: const Icon(
                 Icons.workspace_premium_outlined,
-                color: Color(0xFFB7791F),
+                color: AppColors.goldText,
               ),
-              title: const Text('VIP Membership'),
-              subtitle: const Text('View plans and subscription status'),
+              title: Text(l10n.vipMembership),
+              subtitle: Text(l10n.viewPlans),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.of(
                   context,
                 ).push(MaterialPageRoute(builder: (_) => const VipScreen()));
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: ListTile(
+              leading: const Icon(
+                Icons.settings_outlined,
+                color: AppColors.accent,
+              ),
+              title: Text(l10n.settings),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
               },
             ),
           ),
@@ -388,11 +411,15 @@ class _ProfileInfoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final editable = onTap != null;
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFF1F7A5A)),
+      leading: Icon(icon, color: AppColors.accent),
       title: Text(label),
       subtitle: Text(value),
       trailing: editable
-          ? const Icon(Icons.edit_outlined, size: 20, color: Colors.black45)
+          ? Icon(
+              Icons.edit_outlined,
+              size: 20,
+              color: Theme.of(context).hintColor,
+            )
           : null,
       onTap: onTap,
     );
@@ -478,7 +505,7 @@ class _EditFieldSheetState extends State<_EditFieldSheet> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: Colors.black26,
+                color: Theme.of(context).hintColor.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -501,21 +528,19 @@ class _EditFieldSheetState extends State<_EditFieldSheet> {
               labelText: widget.label,
               border: const OutlineInputBorder(),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: Theme.of(context).colorScheme.surface,
             ),
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),
-            Text(_error!, style: const TextStyle(color: Colors.red)),
+            Text(_error!, style: const TextStyle(color: AppColors.error)),
           ],
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: FilledButton(
               onPressed: _isSaving ? null : _save,
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF1F7A5A),
-              ),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
               child: _isSaving
                   ? const SizedBox(
                       height: 18,
@@ -525,7 +550,7 @@ class _EditFieldSheetState extends State<_EditFieldSheet> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text('Save'),
+                  : Text(context.l10n.save),
             ),
           ),
         ],
