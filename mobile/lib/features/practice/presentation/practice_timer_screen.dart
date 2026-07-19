@@ -30,6 +30,7 @@ class _PracticeTimerScreenState extends State<PracticeTimerScreen> {
   bool _isLoading = true;
   bool _isStarting = false;
   bool _isEnding = false;
+  bool _isCancelling = false;
 
   @override
   void initState() {
@@ -172,6 +173,59 @@ class _PracticeTimerScreenState extends State<PracticeTimerScreen> {
     }
   }
 
+  Future<void> _cancelSession() async {
+    final session = _activeSession;
+
+    if (session == null) return;
+
+    final l10n = context.l10n;
+
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text(l10n.cancelSessionQuestion),
+            content: Text(l10n.cancelSessionDescription),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(dialogContext).colorScheme.error,
+                  foregroundColor: Theme.of(dialogContext).colorScheme.onError,
+                ),
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(l10n.cancelSession),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!confirmed || !mounted) return;
+
+    setState(() {
+      _isCancelling = true;
+      _error = null;
+    });
+
+    try {
+      await _api.cancelSession(sessionId: session.id);
+
+      if (!mounted) return;
+      Navigator.of(context).pop();
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        _isCancelling = false;
+        _error = _errorMessage(error);
+      });
+    }
+  }
+
   String _errorMessage(Object error) {
     return error.toString().replaceFirst('Exception: ', '');
   }
@@ -216,10 +270,12 @@ class _PracticeTimerScreenState extends State<PracticeTimerScreen> {
               notesController: _notesController,
               mood: _mood,
               isEnding: _isEnding,
+              isCancelling: _isCancelling,
               onMoodChanged: (mood) {
                 setState(() => _mood = mood);
               },
               onEnd: _endSession,
+              onCancel: _cancelSession,
             ),
     );
   }
@@ -258,10 +314,7 @@ class _StartSessionView extends StatelessWidget {
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 8),
-        Text(
-          l10n.chooseInstrumentHint,
-          textAlign: TextAlign.center,
-        ),
+        Text(l10n.chooseInstrumentHint, textAlign: TextAlign.center),
         const SizedBox(height: 32),
         DropdownButtonFormField<UserPracticeInstrument>(
           initialValue: selectedInstrument,
@@ -282,10 +335,7 @@ class _StartSessionView extends StatelessWidget {
         ),
         if (!hasInstruments) ...[
           const SizedBox(height: 12),
-          Text(
-            l10n.noInstrumentYet,
-            textAlign: TextAlign.center,
-          ),
+          Text(l10n.noInstrumentYet, textAlign: TextAlign.center),
           const SizedBox(height: 8),
           TextButton.icon(
             onPressed: onAddInstrument,
@@ -319,6 +369,8 @@ class _ActiveSessionView extends StatelessWidget {
     required this.isEnding,
     required this.onMoodChanged,
     required this.onEnd,
+    required this.isCancelling,
+    required this.onCancel,
   });
 
   final ActivePracticeSession session;
@@ -328,6 +380,8 @@ class _ActiveSessionView extends StatelessWidget {
   final bool isEnding;
   final ValueChanged<String?> onMoodChanged;
   final VoidCallback onEnd;
+  final bool isCancelling;
+  final VoidCallback onCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -381,10 +435,7 @@ class _ActiveSessionView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        Text(
-          l10n.howDidItFeel,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text(l10n.howDidItFeel, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 10),
         SegmentedButton<String>(
           emptySelectionAllowed: true,
@@ -400,9 +451,28 @@ class _ActiveSessionView extends StatelessWidget {
           },
         ),
         const SizedBox(height: 28),
+        OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Theme.of(context).colorScheme.error,
+            side: BorderSide(color: Theme.of(context).colorScheme.error),
+          ),
+          onPressed: isEnding || isCancelling ? null : onCancel,
+          icon: isCancelling
+              ? SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                )
+              : const Icon(Icons.cancel_outlined),
+          label: Text(isCancelling ? l10n.cancelling : l10n.cancelSession),
+        ),
+        const SizedBox(height: 12),
         FilledButton.icon(
           style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-          onPressed: isEnding ? null : onEnd,
+          onPressed: isEnding || isCancelling ? null : onEnd,
           icon: isEnding
               ? const SizedBox(
                   width: 18,
@@ -435,7 +505,10 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onRetry, child: Text(context.l10n.tryAgain)),
+            FilledButton(
+              onPressed: onRetry,
+              child: Text(context.l10n.tryAgain),
+            ),
           ],
         ),
       ),

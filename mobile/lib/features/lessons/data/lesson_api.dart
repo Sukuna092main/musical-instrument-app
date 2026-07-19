@@ -112,6 +112,80 @@ class LessonDetail {
   }
 }
 
+class LessonProgressData {
+  const LessonProgressData({
+    required this.items,
+    required this.total,
+    required this.completed,
+    required this.inProgress,
+  });
+
+  final List<LessonProgressItem> items;
+  final int total;
+  final int completed;
+  final int inProgress;
+
+  factory LessonProgressData.fromJson(Map<String, dynamic> json) {
+    final summary = _asMap(json['summary']) ?? <String, dynamic>{};
+    final items = json['items'] as List<dynamic>? ?? [];
+
+    return LessonProgressData(
+      items: items
+          .map(
+            (item) => LessonProgressItem.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList(),
+      total: _toInt(summary['total']),
+      completed: _toInt(summary['completed']),
+      inProgress: _toInt(summary['inProgress']),
+    );
+  }
+}
+
+class LessonProgressItem {
+  const LessonProgressItem({
+    required this.lessonId,
+    required this.title,
+    required this.slug,
+    required this.status,
+    required this.difficulty,
+    required this.isVip,
+    required this.categoryName,
+    required this.instrumentName,
+    required this.completedAt,
+  });
+
+  final String lessonId;
+  final String title;
+  final String slug;
+  final String status;
+  final String difficulty;
+  final bool isVip;
+  final String? categoryName;
+  final String? instrumentName;
+  final DateTime? completedAt;
+
+  factory LessonProgressItem.fromJson(Map<String, dynamic> json) {
+    final lesson = _asMap(json['lessons']) ?? <String, dynamic>{};
+    final category = _asMap(lesson['lesson_categories']);
+    final instrument = _asMap(lesson['instruments']);
+
+    return LessonProgressItem(
+      lessonId: lesson['id'] as String? ?? json['lesson_id'] as String,
+      title: lesson['title'] as String? ?? 'Lesson',
+      slug: lesson['slug'] as String? ?? '',
+      status: json['status'] as String? ?? 'in_progress',
+      difficulty: lesson['difficulty'] as String? ?? 'beginner',
+      isVip: lesson['is_vip'] == true,
+      categoryName: category?['name'] as String?,
+      instrumentName: instrument?['name'] as String?,
+      completedAt: _dateFromJson(json['completed_at']),
+    );
+  }
+}
+
 class LessonsApi {
   LessonsApi(this._client);
 
@@ -169,6 +243,14 @@ class LessonsApi {
     );
   }
 
+  Future<LessonProgressData> getLearningProgress() async {
+    final response = Map<String, dynamic>.from(
+      await _client.get('/api/user-lesson-progress') as Map,
+    );
+
+    return LessonProgressData.fromJson(response);
+  }
+
   Future<void> startLesson(String lessonId) async {
     await _client.post('/api/user-lesson-progress/$lessonId/start', {});
   }
@@ -190,4 +272,9 @@ Map<String, dynamic>? _asMap(dynamic value) {
 int _toInt(dynamic value) {
   if (value is num) return value.toInt();
   return int.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+DateTime? _dateFromJson(dynamic value) {
+  if (value is! String) return null;
+  return DateTime.tryParse(value)?.toLocal();
 }

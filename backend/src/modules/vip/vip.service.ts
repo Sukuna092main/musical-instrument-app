@@ -2,6 +2,9 @@ import { prisma } from "../../config/prisma";
 
 const fixedVipPlanCodes = ["VIP_MONTHLY", "VIP_YEARLY"];
 
+// Các status được tính là VIP: active (đã thanh toán) hoặc trial (đang chờ duyệt).
+const VIP_STATUSES = ["active", "trial"];
+
 export async function getActiveVipsPlans() {
     return await prisma.vip_plans.findMany({
         where: { 
@@ -17,7 +20,7 @@ export async function getUserActiveSubscription(userId: string) {
     return await prisma.subscriptions.findFirst({
         where: {
             user_id: userId,
-            status: "active",
+            status: { in: VIP_STATUSES },
             expired_at: {gt: now}
         },
         include: {

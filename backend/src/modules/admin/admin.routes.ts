@@ -19,12 +19,24 @@ import {
     showAdminPayment,
     listAdminSubscriptions,
     showAdminSubscription,
-    updateAdminSubscriptionStatus
+    updateAdminSubscriptionStatus,
+    listAdminManualPayments,
+    approveAdminManualPayment,
+    rejectAdminManualPayment
  } from "./admin.controller";
 
 export const adminRoutes = Router();
 
 adminRoutes.use(authMiddleware, adminMiddleware);
+
+// GET /api/admin/manual-payments
+adminRoutes.get("/manual-payments", listAdminManualPayments);
+
+// POST /api/admin/manual-payments/:id/approve
+adminRoutes.post("/manual-payments/:id/approve", approveAdminManualPayment);
+
+// POST /api/admin/manual-payments/:id/reject
+adminRoutes.post("/manual-payments/:id/reject", rejectAdminManualPayment);
 
 adminRoutes.use("/", adminContentRoutes);
 

@@ -85,4 +85,8 @@ class PracticeTimerApi {
       'mood': ?mood,
     });
   }
+
+  Future<void> cancelSession({required String sessionId}) async {
+    await _client.post('/api/practice-sessions/$sessionId/cancel', {});
+  }
 }

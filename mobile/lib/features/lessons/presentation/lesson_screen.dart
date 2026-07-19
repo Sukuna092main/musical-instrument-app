@@ -7,6 +7,7 @@ import '../data/lesson_api.dart';
 import 'lesson_detail_screen.dart';
 import '../../chords/presentation/chords_screen.dart';
 import '../../scales/presentation/scales_screen.dart';
+import 'learning_progress_screen.dart';
 
 class LessonsScreen extends StatefulWidget {
   const LessonsScreen({super.key});
@@ -84,6 +85,16 @@ class _LessonsScreenState extends State<LessonsScreen> {
     }
   }
 
+  Future<void> _openLearningProgress() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const LearningProgressScreen()));
+
+    if (mounted) {
+      await _refresh();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -138,10 +149,7 @@ class _LessonsScreenState extends State<LessonsScreen> {
                     snapshot.error.toString().replaceFirst('Exception: ', ''),
                   ),
                   const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: _refresh,
-                    child: Text(l10n.tryAgain),
-                  ),
+                  FilledButton(onPressed: _refresh, child: Text(l10n.tryAgain)),
                 ],
               );
             }
@@ -162,6 +170,15 @@ class _LessonsScreenState extends State<LessonsScreen> {
                 Text(
                   l10n.lessonsSubtitle,
                   style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _openLearningProgress,
+                    icon: const Icon(Icons.auto_graph_outlined),
+                    label: Text(l10n.learningProgress),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 SizedBox(

@@ -333,4 +333,53 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get askAbout =>
       'Hỏi về luyện tập, mục tiêu, bài học, VIP hoặc thanh toán.';
+
+  @override
+  String get cancelSession => 'Hủy buổi tập';
+
+  @override
+  String get cancelSessionQuestion => 'Hủy buổi tập này?';
+
+  @override
+  String get cancelSessionDescription =>
+      'Buổi tập này sẽ bị hủy và không được tính vào tiến độ.';
+
+  @override
+  String get cancelling => 'Đang hủy...';
+
+  @override
+  String get learningProgress => 'Tiến độ học';
+
+  @override
+  String totalLessons(int count) {
+    return '$count bài học';
+  }
+
+  @override
+  String inProgressLessons(int count) {
+    return '$count đang học';
+  }
+
+  @override
+  String completedLessons(int count) {
+    return '$count đã hoàn thành';
+  }
+
+  @override
+  String get noLearningProgress => 'Chưa có tiến độ học';
+
+  @override
+  String get noInProgressLessons => 'Không có bài học đang học';
+
+  @override
+  String get noCompletedLessons => 'Chưa có bài học hoàn thành';
+
+  @override
+  String get startLessonToTrackProgress =>
+      'Bắt đầu một bài học để theo dõi tiến độ tại đây.';
+
+  @override
+  String completedOn(String date) {
+    return 'Hoàn thành ngày $date';
+  }
 }

@@ -10,6 +10,7 @@ import '../../auth/data/auth_api.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../data/profile_api.dart';
 import '../../vip/presentation/vip_screen.dart';
+import '../../admin/presentation/admin_dashboard_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, required this.user});
@@ -367,6 +368,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
           ),
+          if (_user.role == 'admin') ...[
+            const SizedBox(height: 16),
+            Card(
+              elevation: 0,
+              margin: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ListTile(
+                leading: const Icon(
+                  Icons.admin_panel_settings_outlined,
+                  color: AppColors.accent,
+                ),
+                title: const Text('Admin Dashboard'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const AdminDashboardScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           Card(
             elevation: 0,

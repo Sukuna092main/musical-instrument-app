@@ -334,4 +334,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get askAbout => 'Ask about practice, goals, lessons, VIP or payments.';
+
+  @override
+  String get cancelSession => 'Cancel session';
+
+  @override
+  String get cancelSessionQuestion => 'Cancel this practice session?';
+
+  @override
+  String get cancelSessionDescription =>
+      'This session will be discarded and will not count toward your progress.';
+
+  @override
+  String get cancelling => 'Cancelling...';
+
+  @override
+  String get learningProgress => 'My learning';
+
+  @override
+  String totalLessons(int count) {
+    return '$count lessons';
+  }
+
+  @override
+  String inProgressLessons(int count) {
+    return '$count in progress';
+  }
+
+  @override
+  String completedLessons(int count) {
+    return '$count completed';
+  }
+
+  @override
+  String get noLearningProgress => 'No learning progress yet';
+
+  @override
+  String get noInProgressLessons => 'No lessons in progress';
+
+  @override
+  String get noCompletedLessons => 'No completed lessons yet';
+
+  @override
+  String get startLessonToTrackProgress =>
+      'Start a lesson to track your progress here.';
+
+  @override
+  String completedOn(String date) {
+    return 'Completed $date';
+  }
 }

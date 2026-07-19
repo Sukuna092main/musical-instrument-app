@@ -118,7 +118,42 @@
   "saving": "Saving...",
 
   "practice": "Practice",
-  "askAbout": "Ask about practice, goals, lessons, VIP or payments."
+  "askAbout": "Ask about practice, goals, lessons, VIP or payments.",
+
+  "cancelSession": "Cancel session",
+  "cancelSessionQuestion": "Cancel this practice session?",
+  "cancelSessionDescription": "This session will be discarded and will not count toward your progress.",
+  "cancelling": "Cancelling...",
+
+  "learningProgress": "My learning",
+  "totalLessons": "{count} lessons",
+  "@totalLessons": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "inProgressLessons": "{count} in progress",
+  "@inProgressLessons": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "completedLessons": "{count} completed",
+  "@completedLessons": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "noLearningProgress": "No learning progress yet",
+  "noInProgressLessons": "No lessons in progress",
+  "noCompletedLessons": "No completed lessons yet",
+  "startLessonToTrackProgress": "Start a lesson to track your progress here.",
+  "completedOn": "Completed {date}",
+  "@completedOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  }
 }
 
 

@@ -19,6 +19,11 @@ import {
     listSubscriptionsForAdmin,
     updateSubscriptionStatusForAdmin
 } from "./admin.service";
+import {
+  listManualRequestsForAdmin,
+  approveManualRequest,
+  rejectManualRequest,
+} from "../payments/manual-payment.service";
 
 export const showAdminDashboard = asyncHandler(
   async (_req: Request, res: Response) => {
@@ -373,3 +378,43 @@ export const updateAdminSubscriptionStatus = asyncHandler(
     });
   }
 );
+
+// GET /api/admin/manual-payments?status=pending
+export const listAdminManualPayments = asyncHandler(async (req: Request, res: Response) => {
+  const page = Number(req.query.page || 1);
+  const limit = Number(req.query.limit || 20);
+  const result = await listManualRequestsForAdmin({
+    page,
+    limit,
+    status: req.query.status as string | undefined,
+    userId: req.query.userId as string | undefined,
+  });
+  res.json({ data: result });
+});
+
+// POST /api/admin/manual-payments/:id/approve
+export const approveAdminManualPayment = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const result = await approveManualRequest(req.params.id as string, req.user.id);
+  if ("error" in result) {
+    const code = result.error.includes("not found") ? 404 : 400;
+    return res.status(code).json({ message: result.error });
+  }
+  res.json({ data: result });
+});
+
+// POST /api/admin/manual-payments/:id/reject
+export const rejectAdminManualPayment = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const { reason } = req.body || {};
+  const result = await rejectManualRequest(req.params.id as string, req.user.id, reason);
+  if ("error" in result) {
+    const code = result.error.includes("not found") ? 404 : 400;
+    return res.status(code).json({ message: result.error });
+  }
+  res.json({ data: result });
+});

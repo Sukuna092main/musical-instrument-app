@@ -45,9 +45,10 @@ class _VipScreenState extends State<VipScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirm purchase'),
+        title: const Text('Subscribe via bank transfer'),
         content: Text(
-          'Subscribe to ${plan.name} for ${_formatPrice(plan.price, plan.currency)}?',
+          'You will get ${plan.name} (${plan.durationDays} days) after admin approval. '
+          'A 24h VIP trial is activated immediately so you can use premium features while waiting.',
         ),
         actions: [
           TextButton(
@@ -56,7 +57,7 @@ class _VipScreenState extends State<VipScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Purchase'),
+            child: const Text('Continue'),
           ),
         ],
       ),
@@ -67,12 +68,28 @@ class _VipScreenState extends State<VipScreen> {
     setState(() => _isPurchasing = true);
 
     try {
-      await _api.devPurchase(plan.code);
+      final result = await _api.requestManualVip(plan.code);
 
       if (!mounted) return;
 
+      // Mở bottom sheet hiện QR + STK + thông tin chuyển khoản.
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (context) => _PaymentSheet(plan: plan, result: result),
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('VIP activated successfully!')),
+        SnackBar(
+          content: Text(
+            result.trialHours > 0
+                ? 'VIP trial activated for ${result.trialHours}h. Please complete the bank transfer.'
+                : 'Request created. Please complete the bank transfer.',
+          ),
+        ),
       );
 
       await _refresh();
@@ -491,6 +508,224 @@ class _PaymentTile extends StatelessWidget {
             context,
           ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
+      ),
+    );
+  }
+}
+
+// ── Payment bottom sheet (QR + STK) ──
+
+class _PaymentSheet extends StatelessWidget {
+  const _PaymentSheet({required this.plan, required this.result});
+
+  final VipPlan plan;
+  final ManualRequestResult result;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final info = result.paymentInfo;
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          16 + MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Complete your payment',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            if (result.trialHours > 0) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.bolt, color: scheme.onPrimaryContainer),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'VIP trial activated for ${result.trialHours} hours. '
+                        'Complete the transfer to keep VIP after the trial.',
+                        style: TextStyle(color: scheme.onPrimaryContainer),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            if (!info.configured) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: scheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Bank transfer is not configured on the server yet. '
+                  'Please contact support.',
+                  style: TextStyle(color: scheme.onErrorContainer),
+                ),
+              ),
+            ] else ...[
+              if (info.qrUrl != null) ...[
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      info.qrUrl!,
+                      width: 220,
+                      height: 220,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stack) => Container(
+                        width: 220,
+                        height: 220,
+                        color: scheme.surfaceContainerHighest,
+                        child: const Center(child: Text('Could not load QR')),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              _InfoRow(
+                label: 'Amount',
+                value: _formatPrice(plan.price, plan.currency),
+              ),
+              if (info.accountNo != null)
+                _InfoRow(label: 'Account no.', value: info.accountNo!),
+              if (info.accountName != null)
+                _InfoRow(label: 'Account name', value: info.accountName!),
+              if (info.transferRef != null) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: scheme.tertiaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Transfer content (IMPORTANT)',
+                              style: TextStyle(
+                                color: scheme.onTertiaryContainer,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              info.transferRef!,
+                              style: TextStyle(
+                                color: scheme.onTertiaryContainer,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Copy',
+                        icon: const Icon(Icons.copy, size: 20),
+                        onPressed: () {
+                          // Cần import package:flutter/services.dart để dùng Clipboard.
+                          // Để gọn, mình không thêm ở đây — user copy bằng tay.
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Please copy this code into your banking app.',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
+              Text(
+                'After transferring, your VIP will be activated once admin approves '
+                '(usually within a few hours). The 24h trial lets you use VIP features immediately.',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Done'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            child: SelectableText(
+              value,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

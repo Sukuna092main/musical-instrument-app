@@ -715,6 +715,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ask about practice, goals, lessons, VIP or payments.'**
   String get askAbout;
+
+  /// No description provided for @cancelSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel session'**
+  String get cancelSession;
+
+  /// No description provided for @cancelSessionQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this practice session?'**
+  String get cancelSessionQuestion;
+
+  /// No description provided for @cancelSessionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This session will be discarded and will not count toward your progress.'**
+  String get cancelSessionDescription;
+
+  /// No description provided for @cancelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelling...'**
+  String get cancelling;
+
+  /// No description provided for @learningProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'My learning'**
+  String get learningProgress;
+
+  /// No description provided for @totalLessons.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} lessons'**
+  String totalLessons(int count);
+
+  /// No description provided for @inProgressLessons.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} in progress'**
+  String inProgressLessons(int count);
+
+  /// No description provided for @completedLessons.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} completed'**
+  String completedLessons(int count);
+
+  /// No description provided for @noLearningProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'No learning progress yet'**
+  String get noLearningProgress;
+
+  /// No description provided for @noInProgressLessons.
+  ///
+  /// In en, this message translates to:
+  /// **'No lessons in progress'**
+  String get noInProgressLessons;
+
+  /// No description provided for @noCompletedLessons.
+  ///
+  /// In en, this message translates to:
+  /// **'No completed lessons yet'**
+  String get noCompletedLessons;
+
+  /// No description provided for @startLessonToTrackProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a lesson to track your progress here.'**
+  String get startLessonToTrackProgress;
+
+  /// No description provided for @completedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed {date}'**
+  String completedOn(String date);
 }
 
 class _AppLocalizationsDelegate

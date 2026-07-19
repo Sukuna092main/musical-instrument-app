@@ -110,7 +110,42 @@
   "saving": "Đang lưu...",
 
   "practice": "Luyện tập",
-  "askAbout": "Hỏi về luyện tập, mục tiêu, bài học, VIP hoặc thanh toán."
+  "askAbout": "Hỏi về luyện tập, mục tiêu, bài học, VIP hoặc thanh toán.",
+
+  "cancelSession": "Hủy buổi tập",
+  "cancelSessionQuestion": "Hủy buổi tập này?",
+  "cancelSessionDescription": "Buổi tập này sẽ bị hủy và không được tính vào tiến độ.",
+  "cancelling": "Đang hủy...",
+
+  "learningProgress": "Tiến độ học",
+  "totalLessons": "{count} bài học",
+  "@totalLessons": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "inProgressLessons": "{count} đang học",
+  "@inProgressLessons": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "completedLessons": "{count} đã hoàn thành",
+  "@completedLessons": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "noLearningProgress": "Chưa có tiến độ học",
+  "noInProgressLessons": "Không có bài học đang học",
+  "noCompletedLessons": "Chưa có bài học hoàn thành",
+  "startLessonToTrackProgress": "Bắt đầu một bài học để theo dõi tiến độ tại đây.",
+  "completedOn": "Hoàn thành ngày {date}",
+  "@completedOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  }
 }
 
 
