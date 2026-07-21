@@ -19,7 +19,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     try {
         const payload = jwt.verify(token, env.jwtSecret) as AccessTokenPayload;
 
-        req.user = { id: payload.userId, role: payload.role };
+        (req as any).user = { id: payload.userId, role: payload.role };
 
         return next();
     } catch {

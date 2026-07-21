@@ -1,4 +1,5 @@
 import express from "express";
+import "./types/express";
 import cors from "cors";
 import { prisma } from "./config/prisma";
 import { instrumentRoutes } from "./modules/instruments/instrument.routes";

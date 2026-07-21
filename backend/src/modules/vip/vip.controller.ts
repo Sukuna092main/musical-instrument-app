@@ -10,12 +10,13 @@ export const listVipPlans = asyncHandler(async (req: Request, res: Response) => 
 // Tạm thời nhận userId qua query để test.
 // Sau này có JWT rồi sẽ lấy từ req.user.
 export const showMySubscription = asyncHandler(async (req: Request, res: Response) => {
-    if (!req.user) {
+    const user = (req as any).user;
+    if (!user) {
         res.status(401).json({message: "Unauthorized"});
         return;
     }
 
-    const subscription = await getUserActiveSubscription(req.user.id);
+    const subscription = await getUserActiveSubscription(user.id);
 
     res.status(200).json(subscription);
 });
