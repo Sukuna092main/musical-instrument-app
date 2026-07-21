@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateAdminSubscriptionStatus = exports.showAdminSubscription = exports.listAdminSubscriptions = exports.showAdminPayment = exports.listAdminPayments = exports.updateAdminVipPlan = exports.showAdminVipPlan = exports.listAdminVipPlans = exports.deleteAdminInstrument = exports.updateAdminInstrument = exports.createAdminInstrument = exports.showAdminInstrument = exports.listAdminInstruments = exports.updateAdminUserStatus = exports.showAdminUser = exports.listAdminUsers = exports.showAdminDashboard = void 0;
+exports.rejectAdminManualPayment = exports.approveAdminManualPayment = exports.listAdminManualPayments = exports.updateAdminSubscriptionStatus = exports.showAdminSubscription = exports.listAdminSubscriptions = exports.showAdminPayment = exports.listAdminPayments = exports.updateAdminVipPlan = exports.showAdminVipPlan = exports.listAdminVipPlans = exports.deleteAdminInstrument = exports.updateAdminInstrument = exports.createAdminInstrument = exports.showAdminInstrument = exports.listAdminInstruments = exports.updateAdminUserStatus = exports.showAdminUser = exports.listAdminUsers = exports.showAdminDashboard = void 0;
 const asyncHandler_1 = require("../../utils/asyncHandler");
 const admin_service_1 = require("./admin.service");
+const manual_payment_service_1 = require("../payments/manual-payment.service");
 exports.showAdminDashboard = (0, asyncHandler_1.asyncHandler)(async (_req, res) => {
     const dashboard = await (0, admin_service_1.getAdminDashboard)();
     res.json({
@@ -252,4 +253,41 @@ exports.updateAdminSubscriptionStatus = (0, asyncHandler_1.asyncHandler)(async (
     res.json({
         data: result.subscription,
     });
+});
+// GET /api/admin/manual-payments?status=pending
+exports.listAdminManualPayments = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+    const page = Number(req.query.page || 1);
+    const limit = Number(req.query.limit || 20);
+    const result = await (0, manual_payment_service_1.listManualRequestsForAdmin)({
+        page,
+        limit,
+        status: req.query.status,
+        userId: req.query.userId,
+    });
+    res.json({ data: result });
+});
+// POST /api/admin/manual-payments/:id/approve
+exports.approveAdminManualPayment = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+    if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    const result = await (0, manual_payment_service_1.approveManualRequest)(req.params.id, req.user.id);
+    if ("error" in result) {
+        const code = result.error.includes("not found") ? 404 : 400;
+        return res.status(code).json({ message: result.error });
+    }
+    res.json({ data: result });
+});
+// POST /api/admin/manual-payments/:id/reject
+exports.rejectAdminManualPayment = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+    if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    const { reason } = req.body || {};
+    const result = await (0, manual_payment_service_1.rejectManualRequest)(req.params.id, req.user.id, reason);
+    if ("error" in result) {
+        const code = result.error.includes("not found") ? 404 : 400;
+        return res.status(code).json({ message: result.error });
+    }
+    res.json({ data: result });
 });

@@ -8,6 +8,12 @@ const admin_content_routes_1 = require("../admin-content/admin-content.routes");
 const admin_controller_1 = require("./admin.controller");
 exports.adminRoutes = (0, express_1.Router)();
 exports.adminRoutes.use(auth_middleware_1.authMiddleware, admin_middleware_1.adminMiddleware);
+// GET /api/admin/manual-payments
+exports.adminRoutes.get("/manual-payments", admin_controller_1.listAdminManualPayments);
+// POST /api/admin/manual-payments/:id/approve
+exports.adminRoutes.post("/manual-payments/:id/approve", admin_controller_1.approveAdminManualPayment);
+// POST /api/admin/manual-payments/:id/reject
+exports.adminRoutes.post("/manual-payments/:id/reject", admin_controller_1.rejectAdminManualPayment);
 exports.adminRoutes.use("/", admin_content_routes_1.adminContentRoutes);
 // GET /api/admin/dashboard
 // Return revenue and operational summary for admin dashboard.

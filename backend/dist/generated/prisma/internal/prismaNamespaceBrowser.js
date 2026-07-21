@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.ScalesScalarFieldEnum = exports.ChordsScalarFieldEnum = exports.User_lesson_progressScalarFieldEnum = exports.LessonsScalarFieldEnum = exports.Lesson_categoriesScalarFieldEnum = exports.Practice_goalsScalarFieldEnum = exports.Practice_sessionsScalarFieldEnum = exports.User_instrumentsScalarFieldEnum = exports.SubscriptionsScalarFieldEnum = exports.PaymentsScalarFieldEnum = exports.Vip_plansScalarFieldEnum = exports.Chat_messagesScalarFieldEnum = exports.InstrumentsScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.Manual_payment_requestsScalarFieldEnum = exports.ScalesScalarFieldEnum = exports.ChordsScalarFieldEnum = exports.User_lesson_progressScalarFieldEnum = exports.LessonsScalarFieldEnum = exports.Lesson_categoriesScalarFieldEnum = exports.Practice_goalsScalarFieldEnum = exports.Practice_sessionsScalarFieldEnum = exports.User_instrumentsScalarFieldEnum = exports.SubscriptionsScalarFieldEnum = exports.PaymentsScalarFieldEnum = exports.Vip_plansScalarFieldEnum = exports.Chat_messagesScalarFieldEnum = exports.InstrumentsScalarFieldEnum = exports.UsersScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -88,7 +88,8 @@ exports.ModelName = {
     lessons: 'lessons',
     user_lesson_progress: 'user_lesson_progress',
     chords: 'chords',
-    scales: 'scales'
+    scales: 'scales',
+    manual_payment_requests: 'manual_payment_requests'
 };
 /*
  * Enums
@@ -264,6 +265,22 @@ exports.ScalesScalarFieldEnum = {
     is_vip: 'is_vip',
     sort_order: 'sort_order',
     status: 'status',
+    created_at: 'created_at',
+    updated_at: 'updated_at'
+};
+exports.Manual_payment_requestsScalarFieldEnum = {
+    id: 'id',
+    user_id: 'user_id',
+    plan_id: 'plan_id',
+    amount: 'amount',
+    currency: 'currency',
+    provider: 'provider',
+    transfer_code: 'transfer_code',
+    note: 'note',
+    status: 'status',
+    reviewed_by: 'reviewed_by',
+    reviewed_at: 'reviewed_at',
+    payment_id: 'payment_id',
     created_at: 'created_at',
     updated_at: 'updated_at'
 };
