@@ -370,6 +370,7 @@ class AdminInstrument {
     required this.name,
     required this.type,
     required this.imageUrl,
+    required this.description,
     required this.audioSampleUrl,
     required this.isVip,
     required this.tags,
@@ -381,6 +382,7 @@ class AdminInstrument {
   final String name;
   final String type;
   final String imageUrl;
+  final String description;
   final String? audioSampleUrl;
   final bool isVip;
   final List<String> tags;
@@ -394,6 +396,7 @@ class AdminInstrument {
       name: (json['name'] as String?) ?? '',
       type: (json['type'] as String?) ?? '',
       imageUrl: (json['image_url'] as String?) ?? '',
+      description: (json['description'] as String?) ?? '',
       audioSampleUrl: json['audio_sample_url'] as String?,
       isVip: json['is_vip'] == true,
       tags: rawTags is List ? rawTags.map((e) => e.toString()).toList() : [],
@@ -407,8 +410,10 @@ class AdminInstrument {
   Map<String, dynamic> toJson() => {
     'name': name,
     'type': type,
-    if (audioSampleUrl != null) 'audio_sample_url': audioSampleUrl,
-    'is_vip': isVip,
+    'imageUrl': imageUrl.isEmpty ? 'https://via.placeholder.com/150' : imageUrl,
+    'description': description.isEmpty ? 'No description' : description,
+    if (audioSampleUrl != null) 'audioSampleUrl': audioSampleUrl,
+    'isVip': isVip,
     'tags': tags,
     'status': status,
   };

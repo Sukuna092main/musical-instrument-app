@@ -326,11 +326,13 @@ class _AdminInstrumentsScreenState extends State<AdminInstrumentsScreen> {
                         value: _typeFilter,
                         options: const {
                           null: 'All types',
-                          'string': 'String',
-                          'wind': 'Wind',
-                          'percussion': 'Percussion',
-                          'keyboard': 'Keyboard',
-                          'electronic': 'Electronic',
+                          'guitar': 'Guitar',
+                          'piano': 'Piano',
+                          'drum': 'Drum',
+                          'violin': 'Violin',
+                          'saxophone': 'Saxophone',
+                          'flute': 'Flute',
+                          'other': 'Other',
                         },
                         onSelected: (v) {
                           _typeFilter = v;
@@ -911,6 +913,8 @@ class _InstrumentFormSheetState extends State<_InstrumentFormSheet> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _nameCtrl;
+  late final TextEditingController _descCtrl;
+  late final TextEditingController _imgCtrl;
   late final TextEditingController _audioCtrl;
   late final TextEditingController _tagsCtrl;
   late String _type;
@@ -921,11 +925,13 @@ class _InstrumentFormSheetState extends State<_InstrumentFormSheet> {
   bool get _isEdit => widget.existing != null;
 
   static const _types = [
-    'string',
-    'wind',
-    'percussion',
-    'keyboard',
-    'electronic',
+    'guitar',
+    'piano',
+    'drum',
+    'violin',
+    'saxophone',
+    'flute',
+    'other',
   ];
 
   @override
@@ -933,9 +939,11 @@ class _InstrumentFormSheetState extends State<_InstrumentFormSheet> {
     super.initState();
     final e = widget.existing;
     _nameCtrl = TextEditingController(text: e?.name ?? '');
+    _descCtrl = TextEditingController(text: e?.description ?? '');
+    _imgCtrl = TextEditingController(text: e?.imageUrl ?? '');
     _audioCtrl = TextEditingController(text: e?.audioSampleUrl ?? '');
     _tagsCtrl = TextEditingController(text: e?.tags.join(', ') ?? '');
-    _type = e?.type ?? 'string';
+    _type = e?.type ?? 'guitar';
     _status = e?.status ?? 'active';
     _isVip = e?.isVip ?? false;
   }
@@ -943,6 +951,8 @@ class _InstrumentFormSheetState extends State<_InstrumentFormSheet> {
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _descCtrl.dispose();
+    _imgCtrl.dispose();
     _audioCtrl.dispose();
     _tagsCtrl.dispose();
     super.dispose();
@@ -962,8 +972,9 @@ class _InstrumentFormSheetState extends State<_InstrumentFormSheet> {
     final instrument = AdminInstrument(
       id: widget.existing?.id ?? '',
       name: _nameCtrl.text.trim(),
+      description: _descCtrl.text.trim(),
       type: _type,
-      imageUrl: widget.existing?.imageUrl ?? '',
+      imageUrl: _imgCtrl.text.trim(),
       audioSampleUrl: _audioCtrl.text.trim().isEmpty
           ? null
           : _audioCtrl.text.trim(),
@@ -1030,6 +1041,27 @@ class _InstrumentFormSheetState extends State<_InstrumentFormSheet> {
               TextFormField(
                 controller: _nameCtrl,
                 decoration: _inputDecor('e.g. Acoustic Guitar'),
+                validator: (v) =>
+                    v == null || v.trim().isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 16),
+
+              // Description
+              _FieldLabel(label: 'Description *'),
+              TextFormField(
+                controller: _descCtrl,
+                decoration: _inputDecor('Instrument description'),
+                maxLines: 3,
+                validator: (v) =>
+                    v == null || v.trim().isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 16),
+
+              // Image URL
+              _FieldLabel(label: 'Image URL *'),
+              TextFormField(
+                controller: _imgCtrl,
+                decoration: _inputDecor('https://...'),
                 validator: (v) =>
                     v == null || v.trim().isEmpty ? 'Required' : null,
               ),

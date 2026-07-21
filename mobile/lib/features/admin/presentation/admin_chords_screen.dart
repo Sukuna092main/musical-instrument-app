@@ -147,6 +147,7 @@ class _AdminChordsScreenState extends State<AdminChordsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => _ChordFormSheet(
+        api: _api,
         existing: existing,
         onSave: (body) async {
           Navigator.pop(ctx);
@@ -868,8 +869,13 @@ class _DetailRow extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _ChordFormSheet extends StatefulWidget {
-  const _ChordFormSheet({this.existing, required this.onSave});
+  const _ChordFormSheet({
+    required this.api,
+    this.existing,
+    required this.onSave,
+  });
 
+  final AdminApi api;
   final AdminChord? existing;
   final ValueChanged<Map<String, dynamic>> onSave;
 
@@ -891,6 +897,8 @@ class _ChordFormSheetState extends State<_ChordFormSheet> {
   late bool _isVip;
   late int _sortOrder;
   late String _status;
+  List<AdminInstrument> _instruments = [];
+  bool _loadingInstruments = true;
 
   @override
   void initState() {
@@ -907,6 +915,23 @@ class _ChordFormSheetState extends State<_ChordFormSheet> {
     _isVip = ex?.isVip ?? false;
     _sortOrder = ex?.sortOrder ?? 0;
     _status = ex?.status ?? 'active';
+    _loadInstruments();
+  }
+
+  Future<void> _loadInstruments() async {
+    try {
+      final res = await widget.api.listInstruments(
+        query: const AdminListQuery(limit: 100),
+      );
+      if (!mounted) return;
+      setState(() {
+        _instruments = res.items;
+        _loadingInstruments = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadingInstruments = false);
+    }
   }
 
   void _submit() {
@@ -918,16 +943,16 @@ class _ChordFormSheetState extends State<_ChordFormSheet> {
         'symbol': _symbol!.trim(),
       'category': _category.trim(),
       if (_instrumentId != null && _instrumentId!.trim().isNotEmpty)
-        'instrument_id': _instrumentId!.trim(),
+        'instrumentId': _instrumentId!.trim(),
       if (_description != null && _description!.trim().isNotEmpty)
         'description': _description!.trim(),
       if (_diagramUrl != null && _diagramUrl!.trim().isNotEmpty)
-        'diagram_url': _diagramUrl!.trim(),
+        'diagramUrl': _diagramUrl!.trim(),
       if (_audioUrl != null && _audioUrl!.trim().isNotEmpty)
-        'audio_url': _audioUrl!.trim(),
+        'audioUrl': _audioUrl!.trim(),
       'difficulty': _difficulty,
-      'is_vip': _isVip,
-      'sort_order': _sortOrder,
+      'isVip': _isVip,
+      'sortOrder': _sortOrder,
       'status': _status,
     });
   }
@@ -998,17 +1023,31 @@ class _ChordFormSheetState extends State<_ChordFormSheet> {
               ),
               const SizedBox(height: 16),
 
-              // Instrument ID
-              TextFormField(
-                initialValue: _instrumentId,
-                decoration: const InputDecoration(
-                  labelText: 'Instrument ID (Optional)',
-                  hintText: 'UUID of the instrument',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.piano),
-                ),
-                onSaved: (v) => _instrumentId = v,
-              ),
+              // Instrument Dropdown
+              _loadingInstruments
+                  ? const Center(child: LinearProgressIndicator())
+                  : DropdownButtonFormField<String?>(
+                      initialValue: _instrumentId,
+                      decoration: const InputDecoration(
+                        labelText: 'Instrument (Optional)',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.piano),
+                      ),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('General / All Instruments'),
+                        ),
+                        ..._instruments.map(
+                          (inst) => DropdownMenuItem<String?>(
+                            value: inst.id,
+                            child: Text('${inst.name} (${inst.type})'),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) => setState(() => _instrumentId = v),
+                      onSaved: (v) => _instrumentId = v,
+                    ),
               const SizedBox(height: 16),
 
               // Difficulty & Status

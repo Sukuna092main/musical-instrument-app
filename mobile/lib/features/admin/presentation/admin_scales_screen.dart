@@ -147,6 +147,7 @@ class _AdminScalesScreenState extends State<AdminScalesScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => _ScaleFormSheet(
+        api: _api,
         existing: existing,
         onSave: (data) async {
           Navigator.pop(ctx);
@@ -857,8 +858,13 @@ class _InfoRow extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _ScaleFormSheet extends StatefulWidget {
-  const _ScaleFormSheet({this.existing, required this.onSave});
+  const _ScaleFormSheet({
+    required this.api,
+    this.existing,
+    required this.onSave,
+  });
 
+  final AdminApi api;
   final AdminScale? existing;
   final Function(Map<String, dynamic>) onSave;
 
@@ -880,6 +886,8 @@ class _ScaleFormSheetState extends State<_ScaleFormSheet> {
   late bool _isVip;
   late int _sortOrder;
   late String _status;
+  List<AdminInstrument> _instruments = [];
+  bool _loadingInstruments = true;
 
   @override
   void initState() {
@@ -896,6 +904,23 @@ class _ScaleFormSheetState extends State<_ScaleFormSheet> {
     _isVip = e?.isVip ?? false;
     _sortOrder = e?.sortOrder ?? 0;
     _status = e?.status ?? 'active';
+    _loadInstruments();
+  }
+
+  Future<void> _loadInstruments() async {
+    try {
+      final res = await widget.api.listInstruments(
+        query: const AdminListQuery(limit: 100),
+      );
+      if (!mounted) return;
+      setState(() {
+        _instruments = res.items;
+        _loadingInstruments = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadingInstruments = false);
+    }
   }
 
   void _submit() {
@@ -905,16 +930,18 @@ class _ScaleFormSheetState extends State<_ScaleFormSheet> {
     final data = <String, dynamic>{
       'name': _name.trim(),
       'key': _key.trim().isEmpty ? null : _key.trim(),
-      'scale_type': _scaleType.trim(),
-      'instrument_id': _instrumentId?.trim().isEmpty == true
-          ? null
-          : _instrumentId?.trim(),
-      'description': _description?.trim(),
-      'diagram_url': _diagramUrl?.trim(),
-      'audio_url': _audioUrl?.trim(),
+      'scaleType': _scaleType.trim(),
+      if (_instrumentId != null && _instrumentId!.trim().isNotEmpty)
+        'instrumentId': _instrumentId!.trim(),
+      if (_description != null && _description!.trim().isNotEmpty)
+        'description': _description!.trim(),
+      if (_diagramUrl != null && _diagramUrl!.trim().isNotEmpty)
+        'diagramUrl': _diagramUrl!.trim(),
+      if (_audioUrl != null && _audioUrl!.trim().isNotEmpty)
+        'audioUrl': _audioUrl!.trim(),
       'difficulty': _difficulty,
-      'is_vip': _isVip,
-      'sort_order': _sortOrder,
+      'isVip': _isVip,
+      'sortOrder': _sortOrder,
       'status': _status,
     };
     widget.onSave(data);
@@ -992,16 +1019,32 @@ class _ScaleFormSheetState extends State<_ScaleFormSheet> {
               ),
               const SizedBox(height: 12),
 
-              // Instrument ID
-              TextFormField(
-                initialValue: _instrumentId,
-                decoration: const InputDecoration(
-                  labelText: 'Instrument ID (optional)',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                onSaved: (v) => _instrumentId = v,
-              ),
+              // Instrument Dropdown
+              _loadingInstruments
+                  ? const Center(child: LinearProgressIndicator())
+                  : DropdownButtonFormField<String?>(
+                      initialValue: _instrumentId,
+                      decoration: const InputDecoration(
+                        labelText: 'Instrument (Optional)',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        prefixIcon: Icon(Icons.piano),
+                      ),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('General / All Instruments'),
+                        ),
+                        ..._instruments.map(
+                          (inst) => DropdownMenuItem<String?>(
+                            value: inst.id,
+                            child: Text('${inst.name} (${inst.type})'),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) => setState(() => _instrumentId = v),
+                      onSaved: (v) => _instrumentId = v,
+                    ),
               const SizedBox(height: 12),
 
               // Description
