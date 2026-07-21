@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 
 import { avatarDirectory } from "../../config/avatar-upload";
 import { asyncHandler } from "../../utils/asyncHandler";
-import { updateAvatarUrl, getCurrentUser, updateMyProfile as updateMyProfileService } from "./user.service";
+import { updateAvatarUrl, getCurrentUser, updateMyProfile as updateMyProfileService, changeMyPassword as changeMyPasswordService } from "./user.service";
 
 function getLocalAvatarFilename(avatarUrl: string | null) {
   if (!avatarUrl) {
@@ -65,6 +65,16 @@ export const updateMyProfile = asyncHandler(async (req: Request, res: Response) 
 
   const user = await updateMyProfileService(req.user!.id, { fullName, phone });
   res.status(200).json({ message: "Profile updated successfully", data: { user } });
+});
+
+// PATCH /api/users/me/password
+// Đổi mật khẩu
+export const changeMyPassword = asyncHandler(async (req: Request, res: Response) => {
+  const { oldPassword, newPassword } = req.body ?? {};
+  
+  await changeMyPasswordService(req.user!.id, { oldPassword, newPassword });
+  
+  res.status(200).json({ message: "Password updated successfully" });
 });
 
 export const uploadMyAvatar = asyncHandler(

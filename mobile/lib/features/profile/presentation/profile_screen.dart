@@ -11,6 +11,7 @@ import '../../settings/presentation/settings_screen.dart';
 import '../data/profile_api.dart';
 import '../../vip/presentation/vip_screen.dart';
 import '../../admin/presentation/admin_dashboard_screen.dart';
+import 'change_password_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, required this.user});
@@ -335,6 +336,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: Icons.badge_outlined,
                   label: l10n.accountType,
                   value: _user.role,
+                ),
+                const Divider(height: 1, indent: 56),
+                _ProfileInfoTile(
+                  icon: Icons.lock_outline,
+                  label: 'Password',
+                  value: '********',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ChangePasswordScreen(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

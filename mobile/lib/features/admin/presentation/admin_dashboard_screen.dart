@@ -4,6 +4,16 @@ import 'package:intl/intl.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
 import '../data/admin_api.dart';
+import 'admin_user_screen.dart';
+import 'admin_manuel_payments_screen.dart';
+import 'admin_payments_screen.dart';
+import 'admin_subscriptions_screen.dart';
+import 'admin_vip_plans_screen.dart';
+import 'admin_instruments_screen.dart';
+import 'admin_lesson_categories_screen.dart';
+import 'admin_lessons_screen.dart';
+import 'admin_chords_screen.dart';
+import 'admin_scales_screen.dart';
 
 /// Admin Dashboard — tổng quan revenue, users, subscriptions, payments, instruments.
 /// Data: GET /api/admin/dashboard (AdminApi.getDashboard).
@@ -53,7 +63,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.offWhite,
       appBar: AppBar(
         backgroundColor: AppColors.accent,
         foregroundColor: Colors.white,
@@ -138,7 +147,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
               _StatCard(
                 icon: Icons.payment_outlined,
-                color: AppColors.accentDark,
+                color: const Color.fromARGB(255, 3, 157, 118),
                 title: 'Payments',
                 mainValue: '${d.payments.success}',
                 lines: [
@@ -173,7 +182,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             title: 'Users',
             subtitle: 'Search, block/unblock users',
             onTap: () {
-              // TODO: Navigator.push → AdminUsersScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => AdminUsersScreen()),
+              );
             },
           ),
           _NavTile(
@@ -181,7 +193,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             title: 'Manual payments',
             subtitle: 'Approve / reject bank transfer requests',
             onTap: () {
-              // TODO: Navigator.push → AdminManualPaymentsScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => AdminManualPaymentsScreen()),
+              );
             },
           ),
           _NavTile(
@@ -189,7 +204,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             title: 'Payments',
             subtitle: 'Payment history by provider',
             onTap: () {
-              // TODO: Navigator.push → AdminPaymentsScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminPaymentsScreen()),
+              );
             },
           ),
           _NavTile(
@@ -197,7 +215,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             title: 'Subscriptions',
             subtitle: 'Active / expired subscriptions',
             onTap: () {
-              // TODO: Navigator.push → AdminSubscriptionsScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AdminSubscriptionsScreen(),
+                ),
+              );
             },
           ),
           _NavTile(
@@ -205,7 +228,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             title: 'VIP plans',
             subtitle: 'Edit pricing, features, status',
             onTap: () {
-              // TODO: Navigator.push → AdminVipPlansScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminVipPlansScreen()),
+              );
             },
           ),
           _NavTile(
@@ -213,7 +239,58 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             title: 'Instruments',
             subtitle: 'CRUD instruments, VIP flag, tags',
             onTap: () {
-              // TODO: Navigator.push → AdminInstrumentsScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AdminInstrumentsScreen(),
+                ),
+              );
+            },
+          ),
+          _NavTile(
+            icon: Icons.folder_outlined,
+            title: 'Lesson Categories',
+            subtitle: 'Manage lesson categories',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AdminLessonCategoriesScreen(),
+                ),
+              );
+            },
+          ),
+          _NavTile(
+            icon: Icons.library_books_outlined,
+            title: 'Lessons',
+            subtitle: 'Manage learning content & lessons',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminLessonsScreen()),
+              );
+            },
+          ),
+          _NavTile(
+            icon: Icons.music_note_outlined,
+            title: 'Chords',
+            subtitle: 'Manage chord library',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminChordsScreen()),
+              );
+            },
+          ),
+          _NavTile(
+            icon: Icons.graphic_eq_outlined,
+            title: 'Scales',
+            subtitle: 'Manage scale library',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminScalesScreen()),
+              );
             },
           ),
         ],
@@ -345,7 +422,6 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.white,
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
@@ -359,7 +435,10 @@ class _StatCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 13, color: Colors.black54),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -376,7 +455,10 @@ class _StatCard extends StatelessWidget {
             for (final line in lines)
               Text(
                 line,
-                style: const TextStyle(fontSize: 11, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -407,7 +489,6 @@ class _NavTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.white,
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -418,7 +499,10 @@ class _NavTile extends StatelessWidget {
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
-        trailing: const Icon(Icons.chevron_right, color: Colors.black45),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
         onTap: onTap,
       ),
     );

@@ -179,19 +179,22 @@ class Paginated<T> {
 
   factory Paginated.fromJson(
     Map<String, dynamic> json,
-    T Function(Map<String, dynamic>) fromJsonItem,
+    T Function(Map<String, dynamic>) fromJson,
   ) {
-    final rawItems = json['items'];
+    final Map<String, dynamic> actualJson = 
+        (json.containsKey('data') && json['data'] is Map) 
+            ? Map<String, dynamic>.from(json['data'] as Map) 
+            : json;
+            
+    final itemsRaw = actualJson['items'] as List? ?? [];
     final items = <T>[];
-    if (rawItems is List) {
-      for (final item in rawItems) {
-        items.add(fromJsonItem(Map<String, dynamic>.from(item as Map)));
-      }
+    for (final item in itemsRaw) {
+      items.add(fromJson(Map<String, dynamic>.from(item as Map)));
     }
     return Paginated(
       items: items,
       pagination: AdminPagination.fromJson(
-        Map<String, dynamic>.from(json['pagination'] as Map? ?? {}),
+        Map<String, dynamic>.from(actualJson['pagination'] as Map? ?? {}),
       ),
     );
   }
@@ -525,6 +528,221 @@ class AdminManualPayment {
   }
 }
 
+// ── Lesson Category ──
+
+class AdminLessonCategory {
+  const AdminLessonCategory({
+    required this.id,
+    required this.name,
+    required this.slug,
+    this.description,
+    this.imageUrl,
+    required this.sortOrder,
+    required this.status,
+    required this.lessonCount,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String name;
+  final String slug;
+  final String? description;
+  final String? imageUrl;
+  final int sortOrder;
+  final String status;
+  final int lessonCount;
+  final DateTime createdAt;
+
+  factory AdminLessonCategory.fromJson(Map<String, dynamic> json) {
+    final count = json['_count'] as Map?;
+    return AdminLessonCategory(
+      id: json['id'] as String,
+      name: (json['name'] as String?) ?? '',
+      slug: (json['slug'] as String?) ?? '',
+      description: json['description'] as String?,
+      imageUrl: json['image_url'] as String?,
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+      status: (json['status'] as String?) ?? 'active',
+      lessonCount: (count?['lessons'] as num?)?.toInt() ?? 0,
+      createdAt:
+          DateTime.tryParse(json['created_at'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+}
+
+// ── Lesson ──
+
+class AdminLesson {
+  const AdminLesson({
+    required this.id,
+    required this.categoryId,
+    this.instrumentId,
+    required this.title,
+    required this.slug,
+    required this.content,
+    required this.difficulty,
+    required this.isVip,
+    required this.sortOrder,
+    required this.status,
+    this.categoryName,
+    this.instrumentName,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String categoryId;
+  final String? instrumentId;
+  final String title;
+  final String slug;
+  final String content;
+  final String difficulty;
+  final bool isVip;
+  final int sortOrder;
+  final String status;
+  final String? categoryName;
+  final String? instrumentName;
+  final DateTime createdAt;
+
+  factory AdminLesson.fromJson(Map<String, dynamic> json) {
+    final cat = json['lesson_categories'] as Map?;
+    final inst = json['instruments'] as Map?;
+    return AdminLesson(
+      id: json['id'] as String,
+      categoryId: (json['category_id'] as String?) ?? '',
+      instrumentId: json['instrument_id'] as String?,
+      title: (json['title'] as String?) ?? '',
+      slug: (json['slug'] as String?) ?? '',
+      content: (json['content'] as String?) ?? '',
+      difficulty: (json['difficulty'] as String?) ?? 'beginner',
+      isVip: json['is_vip'] == true,
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+      status: (json['status'] as String?) ?? 'active',
+      categoryName: cat?['name'] as String?,
+      instrumentName: inst?['name'] as String?,
+      createdAt:
+          DateTime.tryParse(json['created_at'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+}
+
+// ── Chord ──
+
+class AdminChord {
+  const AdminChord({
+    required this.id,
+    this.instrumentId,
+    required this.name,
+    this.symbol,
+    required this.category,
+    this.diagramUrl,
+    this.audioUrl,
+    this.description,
+    required this.difficulty,
+    required this.isVip,
+    required this.sortOrder,
+    required this.status,
+    this.instrumentName,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String? instrumentId;
+  final String name;
+  final String? symbol;
+  final String category;
+  final String? diagramUrl;
+  final String? audioUrl;
+  final String? description;
+  final String difficulty;
+  final bool isVip;
+  final int sortOrder;
+  final String status;
+  final String? instrumentName;
+  final DateTime createdAt;
+
+  factory AdminChord.fromJson(Map<String, dynamic> json) {
+    final inst = json['instruments'] as Map?;
+    return AdminChord(
+      id: json['id'] as String,
+      instrumentId: json['instrument_id'] as String?,
+      name: (json['name'] as String?) ?? '',
+      symbol: json['symbol'] as String?,
+      category: (json['category'] as String?) ?? '',
+      diagramUrl: json['diagram_url'] as String?,
+      audioUrl: json['audio_url'] as String?,
+      description: json['description'] as String?,
+      difficulty: (json['difficulty'] as String?) ?? 'beginner',
+      isVip: json['is_vip'] == true,
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+      status: (json['status'] as String?) ?? 'active',
+      instrumentName: inst?['name'] as String?,
+      createdAt:
+          DateTime.tryParse(json['created_at'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+}
+
+// ── Scale ──
+
+class AdminScale {
+  const AdminScale({
+    required this.id,
+    this.instrumentId,
+    required this.name,
+    this.key,
+    required this.scaleType,
+    this.diagramUrl,
+    this.audioUrl,
+    this.description,
+    required this.difficulty,
+    required this.isVip,
+    required this.sortOrder,
+    required this.status,
+    this.instrumentName,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String? instrumentId;
+  final String name;
+  final String? key;
+  final String scaleType;
+  final String? diagramUrl;
+  final String? audioUrl;
+  final String? description;
+  final String difficulty;
+  final bool isVip;
+  final int sortOrder;
+  final String status;
+  final String? instrumentName;
+  final DateTime createdAt;
+
+  factory AdminScale.fromJson(Map<String, dynamic> json) {
+    final inst = json['instruments'] as Map?;
+    return AdminScale(
+      id: json['id'] as String,
+      instrumentId: json['instrument_id'] as String?,
+      name: (json['name'] as String?) ?? '',
+      key: json['key'] as String?,
+      scaleType: (json['scale_type'] as String?) ?? '',
+      diagramUrl: json['diagram_url'] as String?,
+      audioUrl: json['audio_url'] as String?,
+      description: json['description'] as String?,
+      difficulty: (json['difficulty'] as String?) ?? 'beginner',
+      isVip: json['is_vip'] == true,
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+      status: (json['status'] as String?) ?? 'active',
+      instrumentName: inst?['name'] as String?,
+      createdAt:
+          DateTime.tryParse(json['created_at'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+}
+
 // ──────────────────────────────────────────────────────────────
 // API client
 // ──────────────────────────────────────────────────────────────
@@ -541,6 +759,11 @@ class AdminListQuery {
     this.provider,
     this.type,
     this.isVip,
+    this.categoryId,
+    this.instrumentId,
+    this.difficulty,
+    this.category,
+    this.scaleType,
   });
 
   final int page;
@@ -552,6 +775,11 @@ class AdminListQuery {
   final String? provider;
   final String? type;
   final bool? isVip;
+  final String? categoryId;
+  final String? instrumentId;
+  final String? difficulty;
+  final String? category;
+  final String? scaleType;
 
   Map<String, String> toQuery() {
     final q = <String, String>{
@@ -568,6 +796,11 @@ class AdminListQuery {
     add('role', role);
     add('provider', provider);
     add('type', type);
+    add('categoryId', categoryId);
+    add('instrumentId', instrumentId);
+    add('difficulty', difficulty);
+    add('category', category);
+    add('scaleType', scaleType);
     if (isVip != null) q['isVip'] = isVip.toString();
     return q;
   }
@@ -665,8 +898,11 @@ class AdminApi {
   /// GET /api/admin/vip-plans
   Future<List<AdminVipPlan>> listVipPlans() async {
     final response = await _client.get('/api/admin/vip-plans');
-    if (response is! List) return [];
-    return response
+    final map = Map<String, dynamic>.from(response as Map);
+    final data = map['data'] ?? {};
+    final items = data['items'] ?? [];
+    if (items is! List) return [];
+    return items
         .map((e) => AdminVipPlan.fromJson(Map<String, dynamic>.from(e as Map)))
         .toList();
   }
@@ -676,7 +912,7 @@ class AdminApi {
     final response = await _client.get('/api/admin/vip-plans/$id');
     final map = Map<String, dynamic>.from(response as Map);
     return AdminVipPlan.fromJson(
-      Map<String, dynamic>.from(map['vipPlan'] as Map? ?? response as Map),
+      Map<String, dynamic>.from(map['vipPlan'] as Map? ?? response),
     );
   }
 
@@ -696,7 +932,7 @@ class AdminApi {
     );
     final map = Map<String, dynamic>.from(response as Map);
     return Paginated<AdminPayment>.fromJson(
-      Map<String, dynamic>.from(map['data'] as Map? ?? response as Map),
+      Map<String, dynamic>.from(map['data'] as Map? ?? response),
       (m) => AdminPayment.fromJson(m),
     );
   }
@@ -706,7 +942,7 @@ class AdminApi {
     final response = await _client.get('/api/admin/payments/$id');
     final map = Map<String, dynamic>.from(response as Map);
     return AdminPayment.fromJson(
-      Map<String, dynamic>.from(map['data'] as Map? ?? response as Map),
+      Map<String, dynamic>.from(map['data'] as Map? ?? response),
     );
   }
 
@@ -721,7 +957,7 @@ class AdminApi {
     );
     final map = Map<String, dynamic>.from(response as Map);
     return Paginated<AdminSubscription>.fromJson(
-      Map<String, dynamic>.from(map['data'] as Map? ?? response as Map),
+      Map<String, dynamic>.from(map['data'] as Map? ?? response),
       (m) => AdminSubscription.fromJson(m),
     );
   }
@@ -731,7 +967,7 @@ class AdminApi {
     final response = await _client.get('/api/admin/subscriptions/$id');
     final map = Map<String, dynamic>.from(response as Map);
     return AdminSubscription.fromJson(
-      Map<String, dynamic>.from(map['data'] as Map? ?? response as Map),
+      Map<String, dynamic>.from(map['data'] as Map? ?? response),
     );
   }
 
@@ -753,7 +989,7 @@ class AdminApi {
     );
     final map = Map<String, dynamic>.from(response as Map);
     return Paginated<AdminManualPayment>.fromJson(
-      Map<String, dynamic>.from(map['data'] as Map? ?? response as Map),
+      Map<String, dynamic>.from(map['data'] as Map? ?? response),
       (m) => AdminManualPayment.fromJson(m),
     );
   }
@@ -767,7 +1003,135 @@ class AdminApi {
   /// POST /api/admin/manual-payments/:id/reject — thu hồi trial ngay lập tức.
   Future<void> rejectManualPayment(String id, {String? reason}) async {
     await _client.post('/api/admin/manual-payments/$id/reject', {
-      if (reason != null) 'reason': reason,
+      'reason': ?reason,
+    });
+  }
+
+  // ── Lesson Categories ──
+
+  /// GET /api/admin/lesson-categories
+  Future<Paginated<AdminLessonCategory>> listLessonCategories({
+    AdminListQuery query = const AdminListQuery(),
+  }) async {
+    final response = await _client.get(
+      _withQuery('/api/admin/lesson-categories', query),
+    );
+    return Paginated<AdminLessonCategory>.fromJson(
+      Map<String, dynamic>.from(response as Map),
+      (m) => AdminLessonCategory.fromJson(m),
+    );
+  }
+
+  /// POST /api/admin/lesson-categories
+  Future<void> createLessonCategory(Map<String, dynamic> body) async {
+    await _client.post('/api/admin/lesson-categories', body);
+  }
+
+  /// PATCH /api/admin/lesson-categories/:id
+  Future<void> updateLessonCategory(String id, Map<String, dynamic> body) async {
+    await _client.patch('/api/admin/lesson-categories/$id', body);
+  }
+
+  /// PATCH /api/admin/lesson-categories/:id/status
+  Future<void> updateLessonCategoryStatus(String id, String status) async {
+    await _client.patch('/api/admin/lesson-categories/$id/status', {
+      'status': status,
+    });
+  }
+
+  // ── Lessons ──
+
+  /// GET /api/admin/lessons
+  Future<Paginated<AdminLesson>> listLessons({
+    AdminListQuery query = const AdminListQuery(),
+  }) async {
+    final response = await _client.get(
+      _withQuery('/api/admin/lessons', query),
+    );
+    return Paginated<AdminLesson>.fromJson(
+      Map<String, dynamic>.from(response as Map),
+      (m) => AdminLesson.fromJson(m),
+    );
+  }
+
+  /// POST /api/admin/lessons
+  Future<void> createLesson(Map<String, dynamic> body) async {
+    await _client.post('/api/admin/lessons', body);
+  }
+
+  /// PATCH /api/admin/lessons/:id
+  Future<void> updateLesson(String id, Map<String, dynamic> body) async {
+    await _client.patch('/api/admin/lessons/$id', body);
+  }
+
+  /// PATCH /api/admin/lessons/:id/status
+  Future<void> updateLessonStatus(String id, String status) async {
+    await _client.patch('/api/admin/lessons/$id/status', {
+      'status': status,
+    });
+  }
+
+  // ── Chords ──
+
+  /// GET /api/admin/chords
+  Future<Paginated<AdminChord>> listChords({
+    AdminListQuery query = const AdminListQuery(),
+  }) async {
+    final response = await _client.get(
+      _withQuery('/api/admin/chords', query),
+    );
+    return Paginated<AdminChord>.fromJson(
+      Map<String, dynamic>.from(response as Map),
+      (m) => AdminChord.fromJson(m),
+    );
+  }
+
+  /// POST /api/admin/chords
+  Future<void> createChord(Map<String, dynamic> body) async {
+    await _client.post('/api/admin/chords', body);
+  }
+
+  /// PATCH /api/admin/chords/:id
+  Future<void> updateChord(String id, Map<String, dynamic> body) async {
+    await _client.patch('/api/admin/chords/$id', body);
+  }
+
+  /// PATCH /api/admin/chords/:id/status
+  Future<void> updateChordStatus(String id, String status) async {
+    await _client.patch('/api/admin/chords/$id/status', {
+      'status': status,
+    });
+  }
+
+  // ── Scales ──
+
+  /// GET /api/admin/scales
+  Future<Paginated<AdminScale>> listScales({
+    AdminListQuery query = const AdminListQuery(),
+  }) async {
+    final response = await _client.get(
+      _withQuery('/api/admin/scales', query),
+    );
+    return Paginated<AdminScale>.fromJson(
+      Map<String, dynamic>.from(response as Map),
+      (m) => AdminScale.fromJson(m),
+    );
+  }
+
+  /// POST /api/admin/scales
+  Future<void> createScale(Map<String, dynamic> body) async {
+    await _client.post('/api/admin/scales', body);
+  }
+
+  /// PATCH /api/admin/scales/:id
+  Future<void> updateScale(String id, Map<String, dynamic> body) async {
+    await _client.patch('/api/admin/scales/$id', body);
+  }
+
+  /// PATCH /api/admin/scales/:id/status
+  Future<void> updateScaleStatus(String id, String status) async {
+    await _client.patch('/api/admin/scales/$id/status', {
+      'status': status,
     });
   }
 }

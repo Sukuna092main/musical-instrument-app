@@ -40,4 +40,15 @@ class ProfileApi {
     final data = Map<String, dynamic>.from(response['data'] as Map);
     return AuthUser.fromJson(Map<String, dynamic>.from(data['user'] as Map));
   }
+
+  /// PATCH /api/users/me/password
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    await _client.patch('/api/users/me/password', {
+      'oldPassword': oldPassword,
+      'newPassword': newPassword,
+    });
+  }
 }

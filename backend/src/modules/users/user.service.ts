@@ -1,4 +1,5 @@
 import { prisma } from "../../config/prisma";
+import { hashPassword, comparePassword } from "../../utils/password";
 
 export async function updateAvatarUrl(userId: string, avatarUrl: string) {
   const currentUser = await prisma.users.findUnique({
@@ -126,4 +127,52 @@ export async function updateMyProfile(
       status: true,
     },
   });
+}
+
+export async function changeMyPassword(userId: string, input: { oldPassword?: string; newPassword?: string }) {
+  if (!input.oldPassword || !input.newPassword) {
+    const error = Object.assign(new Error("Old password and new password are required."), {
+      statusCode: 400,
+    });
+    throw error;
+  }
+
+  if (input.newPassword.length < 6) {
+    const error = Object.assign(new Error("New password must be at least 6 characters long."), {
+      statusCode: 400,
+    });
+    throw error;
+  }
+
+  const currentUser = await prisma.users.findUnique({
+    where: { id: userId },
+    select: { password_hash: true },
+  });
+
+  if (!currentUser) {
+    const error = Object.assign(new Error("User not found."), {
+      statusCode: 404,
+    });
+    throw error;
+  }
+
+  const isOldPasswordCorrect = await comparePassword(input.oldPassword, currentUser.password_hash);
+  if (!isOldPasswordCorrect) {
+    const error = Object.assign(new Error("Incorrect old password."), {
+      statusCode: 400,
+    });
+    throw error;
+  }
+
+  const newPasswordHash = await hashPassword(input.newPassword);
+
+  await prisma.users.update({
+    where: { id: userId },
+    data: {
+      password_hash: newPasswordHash,
+      updated_at: new Date(),
+    },
+  });
+
+  return { success: true };
 }
